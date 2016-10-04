@@ -10,7 +10,7 @@ TEST(ArrayContainerTest) {
   // prepare the vector and container
   std::unique_ptr<std::vector<Txn>> v = std::make_unique<std::vector<Txn>>();
   for (int i = 0; i < 100; i++) {
-    Txn t;
+    Txn t(i);
     for (int j = 0; j < i; j++) {
       t.add_to_write_set(j);
     }
@@ -22,9 +22,9 @@ TEST(ArrayContainerTest) {
   // get consequent minima and check that the sorting is correct. 
   // remove every other element.
   for (unsigned int i = 0; i < 100; i++) {
-    EXPECT_EQ(
-      i,
-      c.get_next_min_elt()->get_write_set_handle()->size());
+    auto tmp = c.get_next_min_elt();
+    EXPECT_EQ(i, tmp->get_write_set_handle()->size());
+    EXPECT_EQ(i, tmp->get_id());
 
     if ( (i % 2) == 0) {
       c.remove_former_min();
@@ -37,10 +37,10 @@ TEST(ArrayContainerTest) {
   c.sort_remaining();
   // half of the elements should have been "removed"
   for (unsigned int i = 1; i < 100; i += 2 ) {
-    EXPECT_EQ(
-        i,
-        c.get_next_min_elt()->get_write_set_handle()->size());
-    
+    auto tmp = c.get_next_min_elt();
+    EXPECT_EQ(i, tmp->get_write_set_handle()->size());
+    EXPECT_EQ(i, tmp->get_id());
+
     c.remove_former_min();   
   }
 

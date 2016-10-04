@@ -26,6 +26,10 @@ std::shared_ptr<std::unordered_set<int>> Txn::get_read_set_handle() const {
   return read_set;
 }
 
+unsigned int Txn::get_id() const {
+  return id;
+}
+
 bool Txn::operator<(const Txn& txn) const {
   int count = write_set->size() + read_set->size();
   int txn_count = txn.get_write_set_handle()->size() + txn.get_read_set_handle()->size();

@@ -7,11 +7,24 @@
 #include <unordered_set>
 #include <vector>
 
-void add_txn_to_vector(std::vector<Txn>* v, std::unordered_set<int> s) {
-  Txn t;
+void add_txn_to_vector(std::vector<Txn>* v, std::unordered_set<int> s, unsigned int t_id) {
+  Txn t(t_id);
   t.add_to_write_set(s);
   v->push_back(t);
 };
+
+std::unordered_set<unsigned int> collect_ids(const std::vector<Txn>& t) {
+  std::unordered_set<unsigned int> result;
+  for (auto const elt : t) 
+    result.insert(elt.get_id());
+
+  return result;
+}
+
+template <class A>
+inline bool set_contains(std::unordered_set<A> s, A elt) {
+  return s.find(elt) != s.end();
+}
 
 TEST(SimplePackingTest) {
   // TODO:
@@ -25,20 +38,18 @@ TEST(SimplePackingTest) {
   // Correct packing would be T1, T3
   
   std::unique_ptr<std::vector<Txn>> v = std::make_unique<std::vector<Txn>>();
-  add_txn_to_vector(v.get(), {1});
-  add_txn_to_vector(v.get(), {1, 3, 4});
-  add_txn_to_vector(v.get(), {2, 3});
+  add_txn_to_vector(v.get(), {1}, 1);
+  add_txn_to_vector(v.get(), {1, 3, 4}, 2);
+  add_txn_to_vector(v.get(), {2, 3}, 3);
 
   ArrayContainer c(std::move(v));
   std::vector<Txn> packing = get_packing(&c);
   // TODO: 
   //    After I add IDs, this should just test for IDs.
   EXPECT_EQ(2, packing.size());
-
-  for (const auto& t : packing) {
-    auto w = t.get_write_set_handle();
-    EXPECT_TRUE(w->size() < 3);
-  }
+  auto ids = collect_ids(packing);
+  EXPECT_TRUE(set_contains(ids, 1u));
+  EXPECT_TRUE(set_contains(ids, 3u));
 
   c.sort_remaining();
   packing = get_packing(&c);
@@ -55,21 +66,17 @@ TEST(SimplePackingTest2) {
   // 3 <- T3 <- T4
   // Correct packing would be T1, T4
   std::unique_ptr<std::vector<Txn>> v = std::make_unique<std::vector<Txn>>();
-  add_txn_to_vector(v.get(), {1});
-  add_txn_to_vector(v.get(), {1, 2});
-  add_txn_to_vector(v.get(), {2, 3});
-  add_txn_to_vector(v.get(), {3});
+  add_txn_to_vector(v.get(), {1}, 1);
+  add_txn_to_vector(v.get(), {1, 2}, 2);
+  add_txn_to_vector(v.get(), {2, 3}, 3);
+  add_txn_to_vector(v.get(), {3}, 4);
 
   ArrayContainer c(std::move(v));
   std::vector<Txn> packing = get_packing(&c);
-  // TODO: 
-  //    After I add IDs, this should just test for IDs.
   EXPECT_EQ(2, packing.size());
-
-  for (const auto& t : packing) {
-    auto w = t.get_write_set_handle();
-    EXPECT_EQ(1, w->size());
-  }
+  auto ids = collect_ids(packing);
+  EXPECT_TRUE(set_contains(ids, 1u));
+  EXPECT_TRUE(set_contains(ids, 4u));
 
   END;
 }
