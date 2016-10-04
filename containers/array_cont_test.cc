@@ -1,13 +1,13 @@
-#include <iostream>
 #include "containers/array_cont.h"
-#include <vector>
 #include "txns/txn.h"
+#include "utils/testing.h"
+
+#include <iostream>
 #include <memory>
+#include <vector>
 
-//TODO: 
-//  Convert to google unit test-like structure
-
-int main() {
+TEST(ArrayContainerTest) {
+  // prepare the vector and container
   std::unique_ptr<std::vector<Txn>> v = std::make_unique<std::vector<Txn>>();
   for (int i = 0; i < 100; i++) {
     Txn t;
@@ -19,50 +19,40 @@ int main() {
 
   ArrayContainer c(std::move(v));
   
-  unsigned int res;
+  // get consequent minima and check that the sorting is correct. 
+  // remove every other element.
   for (unsigned int i = 0; i < 100; i++) {
-    res = c.get_next_min_elt()->get_write_set_handle()->size();
-     if(res != i) {
-      std::cout << "Test failed at first loop.\n";
-      std::cout << "expected:" << i << " got " << res << std::endl;
-      return 1;
-    }
+    EXPECT_EQ(
+      i,
+      c.get_next_min_elt()->get_write_set_handle()->size());
 
     if ( (i % 2) == 0) {
       c.remove_former_min();
     }
   }
 
-  // now, we should get nullptr!
-  if (c.get_next_min_elt() != nullptr) {
-    std::cout << "Test failed.\n";
-    return 1;
-  }
+  // the end has been reached, must be 0x0.
+  EXPECT_EQ(0x0, c.get_next_min_elt());
   
   c.sort_remaining();
   // half of the elements should have been "removed"
   for (unsigned int i = 1; i < 100; i += 2 ) {
-    if (c.get_next_min_elt()->get_write_set_handle()->size() != i) {
-      std::cout << "Test failed.\n";
-      return 1;
-    }
+    EXPECT_EQ(
+        i,
+        c.get_next_min_elt()->get_write_set_handle()->size());
     
     c.remove_former_min();   
   }
 
-  // now, we should get nullptr!
-  if (c.get_next_min_elt() != nullptr) {
-    std::cout << "Test failed.\n";
-    return 1;
-  }
-    
+  // the end should be reached. 0x0.
+  EXPECT_EQ(0x0, c.get_next_min_elt());
+ 
+  // sorting empty list still works and we still get 0x0.
   c.sort_remaining();
-  // still nullptr!
-  if (c.get_next_min_elt() != nullptr) {
-    std::cout << "Test failed.\n";
-    return 1;
-  }
+  EXPECT_EQ(0x0, c.get_next_min_elt());
+  END;
+}
 
-  std::cout << "Test passed\n";
-  return 0;
+int main(int argc, char** argv) {
+  ArrayContainerTest();
 }
