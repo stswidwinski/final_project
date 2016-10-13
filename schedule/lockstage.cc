@@ -1,12 +1,13 @@
 #include "schedule/lockstage.h"
 
 bool LockStage::add_to_stage(Txn* txn, LockType req_type) {
-  if (req_type == LockType::exclusive ||
+  if ((req_type == LockType::exclusive && requesters.size() != 0) ||
       type == LockType::exclusive) {
     return false;
   }
 
   requesters.insert(txn);
+  type = req_type;
   holders ++;
   return true;
 }
@@ -27,7 +28,7 @@ std::shared_ptr<LockStage> LockStage::get_next_request() {
   return next_request;
 }
 
-const std::unordered_set<Txn*>& LockStage::get_requesters() {
+std::unordered_set<Txn*>& LockStage::get_requesters() {
   return requesters;
 }
 

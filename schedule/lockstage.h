@@ -37,7 +37,7 @@ public:
   // getters
   int get_current_holders();
   std::shared_ptr<LockStage> get_next_request();
-  const std::unordered_set<Txn*>& get_requesters();
+  std::unordered_set<Txn*>& get_requesters();
   LockType get_lock_type();
 };
 
