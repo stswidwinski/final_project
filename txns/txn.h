@@ -1,19 +1,22 @@
 #ifndef _TXN_H_
 #define _TXN_H_
 
+#include "lock/lock.h"
+#include "utils/mutex.h"
+
 #include <unordered_set>
 #include <memory>
 
 class Txn {
 public:
-  Txn(unsigned int i) {
+  Txn(unsigned int i): locks_granted(0), locks_needed(0) {
     write_set = std::make_shared<std::unordered_set<int>>();
     read_set = std::make_shared<std::unordered_set<int>>();
     id = i;
   }
 
-  void add_to_write_set(int n);
-  void add_to_read_set(int n);
+  void add_to_write_set(const int& n);
+  void add_to_read_set(const int& n);
   void add_to_write_set(std::unordered_set<int> to_add);
   void add_to_read_set(std::unordered_set<int> to_add);
 
@@ -26,11 +29,21 @@ public:
   //  sets, the size of write set only etc.
   bool operator<(const Txn& txn) const;
 
+  // returns true if all locks have been granted and false otherwise.
+  bool lock_granted();
+
 private:
   std::shared_ptr<std::unordered_set<int>> write_set;
   std::shared_ptr<std::unordered_set<int>> read_set;
 
   unsigned int id;
+
+  // mutex for these two variables.
+  MutexRW mutex_;
+  unsigned int locks_granted;
+  unsigned int locks_needed;
+
+  void increment_locks_needed();
 };
 
 #endif // _TXN_H_

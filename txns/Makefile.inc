@@ -4,7 +4,7 @@ OBJDIRS += txns
 UPPERC_DIR := TXNS
 LOWERC_DIR := txns
 
-TXNS_SRCS := txns/txn.cc
+$(UPPERC_DIR)_SRCS := txns/txn.cc
 
 SRC_LINKED_OBJECTS :=
 TEST_LINKED_OBJECTS :=

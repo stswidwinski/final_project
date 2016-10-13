@@ -1,21 +1,26 @@
 #include "txns/txn.h"
+#include "utils/debug.h"
 
-void Txn::add_to_write_set(int n) {
+void Txn::add_to_write_set(const int& n) {
   write_set->insert(n);
+  increment_locks_needed();
 }
 
 void Txn::add_to_write_set(std::unordered_set<int> to_add) {
-  for (const auto& elem : to_add)
-    write_set->insert(elem);
+  for (const auto& elem : to_add) {
+    add_to_write_set(elem);
+  }
 }
 
-void Txn::add_to_read_set(int n) {
+void Txn::add_to_read_set(const int& n) {
   read_set->insert(n);  
+  increment_locks_needed();
 }
 
 void Txn::add_to_read_set(std::unordered_set<int> to_add) {
-  for (const auto& elem : to_add)
-    read_set->insert(elem);
+  for (const auto& elem : to_add) {
+    add_to_read_set(elem);
+  }
 }
 
 std::shared_ptr<std::unordered_set<int>> Txn::get_write_set_handle() const {
@@ -36,4 +41,17 @@ bool Txn::operator<(const Txn& txn) const {
   return count < txn_count;
 }
 
+bool Txn::lock_granted() {
+  MutexRWGuard write_lock(&mutex_, LockType::exclusive);
+  locks_granted ++;
+  ASSERT(locks_granted <= locks_needed);
 
+  return locks_granted == locks_needed;
+}
+
+void Txn::increment_locks_needed() {
+  MutexRWGuard write_lock(&mutex_, LockType::exclusive);
+  locks_needed ++;
+
+  ASSERT(locks_granted <= locks_needed);
+}
