@@ -36,7 +36,10 @@ DEBUG = -g
 
 # Set the flags for C++ to compile with (namely where to look for external
 # libraries) and the linker libraries (again to look in the ext/ library)
-CXXFLAGS := -g -MD $(PG) -I$(SRCDIR) -I$(OBJDIR) -std=c++1y
+# 
+# TODO:
+# Get rid of DDEBUG when you're done testing/debugging
+CXXFLAGS := -g -MD $(PG) -I$(SRCDIR) -I$(OBJDIR) -std=c++17 -DDEBUG
 CXXFLAGS += -Wall -Werror
 
 LDFLAGS := -lpthread -lrt $(PG)
@@ -57,6 +60,7 @@ MAKEFILE_TEMPLATE := Makefile.template
 include txns/Makefile.inc
 include containers/Makefile.inc
 include packing/Makefile.inc
+include schedule/Makefile.inc
 
 test: $(TESTS)
 

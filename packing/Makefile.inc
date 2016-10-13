@@ -4,7 +4,7 @@ OBJDIRS += packing
 UPPERC_DIR := PACKING
 LOWERC_DIR := packing
 
-PACKING_SRCS := packing/packing.cc packing/packing_test.cc
+$(UPPERC_DIR)_SRCS := packing/packing.cc packing/packing_test.cc
 
 SRC_LINKED_OBJECTS :=
 TEST_LINKED_OBJECTS := obj/txns/txn.o obj/containers/array_cont.o

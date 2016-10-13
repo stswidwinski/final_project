@@ -4,7 +4,7 @@ OBJDIRS += containers
 UPPERC_DIR := CONTAINERS
 LOWERC_DIR := containers
 
-CONTAINERS_SRCS := containers/container.cc containers/array_cont.cc
+$(UPPERC_DIR)_SRCS := containers/container.cc containers/array_cont.cc
 
 SRC_LINKED_OBJECTS :=
 TEST_LINKED_OBJECTS := obj/txns/txn.o
