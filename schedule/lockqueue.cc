@@ -102,7 +102,8 @@ bool LockQueue::merge_into_lock_queue(std::shared_ptr<LockQueue> lq_ptr) {
 std::unordered_set<Txn*> LockQueue::signal_lock_granted() {
   std::unordered_set<Txn*> ready_txns;
   for (auto& elt : current->get_requesters()) {
-    if(elt->lock_granted() == 0) {
+    if(elt->lock_granted()) {
+      // all locks for txn granted
       ready_txns.insert(elt);
     }
   }
