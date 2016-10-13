@@ -10,11 +10,18 @@
 
 class Txn {
 public:
-  Txn(unsigned int i): locks_granted(0), locks_needed(0) {
+  Txn(unsigned int i): id(i), locks_granted(0), locks_needed(0) {
     write_set = std::make_shared<std::set<int>>();
     read_set = std::make_shared<std::set<int>>();
-    id = i;
   }
+
+  Txn(unsigned int i, std::shared_ptr<std::set<int>> write_set, std::shared_ptr<std::set<int>> read_set):
+    write_set(write_set),
+    read_set(read_set),
+    id(i), 
+    locks_granted(0),
+    locks_needed(write_set->size() + read_set->size())
+  {};
 
   void add_to_write_set(const int& n);
   void add_to_read_set(const int& n);
