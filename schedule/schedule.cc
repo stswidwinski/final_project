@@ -12,16 +12,11 @@ void Schedule::finalize_txn(Txn* t) {
   auto wh = t->get_write_set_handle();
   auto rh = t->get_read_set_handle();
 
-  // TODO:
-  //    release in opposite order than acquired
-  //    This ties back to having the locks be ordered.
-  //
-  //    Perhaps just make it a set instead of unordered set.
-//  for (auto it = rh.rbegin(); it != rh.rend(); ++it) {
-//    lock_table.finalize_lock_request(*it);
-//  }
-//
-//  for (auto it = wh.rbegin(); it != wh.rend(); ++it) {
-//    lock_table.finalize_lock_request(*it);
-//  }
+  for (auto it = rh->rbegin(); it != rh->rend(); ++it) {
+    lock_table.finalize_lock_request(*it);
+  }
+
+  for (auto it = wh->rbegin(); it != wh->rend(); ++it) {
+    lock_table.finalize_lock_request(*it);
+  }
 }

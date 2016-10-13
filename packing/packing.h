@@ -38,7 +38,7 @@ std::vector<Txn> get_packing(Container* c) {
   std::vector<Txn> txn_in_packing;
   Txn* next_txn;
   
-  auto merge_sets = [](std::unordered_set<int>* mergeTo, std::unordered_set<int>* mergeFrom) {
+  auto merge_sets = [](std::unordered_set<int>* mergeTo, std::set<int>* mergeFrom) {
     for (auto it = mergeFrom->begin(); it != mergeFrom->end(); it ++) {
       mergeTo->insert(*it);
     }

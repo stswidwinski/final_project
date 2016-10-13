@@ -4,14 +4,15 @@
 #include "lock/lock.h"
 #include "utils/mutex.h"
 
-#include <unordered_set>
 #include <memory>
+#include <set>
+#include <unordered_set>
 
 class Txn {
 public:
   Txn(unsigned int i): locks_granted(0), locks_needed(0) {
-    write_set = std::make_shared<std::unordered_set<int>>();
-    read_set = std::make_shared<std::unordered_set<int>>();
+    write_set = std::make_shared<std::set<int>>();
+    read_set = std::make_shared<std::set<int>>();
     id = i;
   }
 
@@ -20,8 +21,8 @@ public:
   void add_to_write_set(std::unordered_set<int> to_add);
   void add_to_read_set(std::unordered_set<int> to_add);
 
-  std::shared_ptr<std::unordered_set<int>> get_write_set_handle() const;
-  std::shared_ptr<std::unordered_set<int>> get_read_set_handle() const;
+  std::shared_ptr<std::set<int>> get_write_set_handle() const;
+  std::shared_ptr<std::set<int>> get_read_set_handle() const;
 
   unsigned int get_id() const;
   // TODO:
@@ -33,8 +34,8 @@ public:
   bool lock_granted();
 
 private:
-  std::shared_ptr<std::unordered_set<int>> write_set;
-  std::shared_ptr<std::unordered_set<int>> read_set;
+  std::shared_ptr<std::set<int>> write_set;
+  std::shared_ptr<std::set<int>> read_set;
 
   unsigned int id;
 

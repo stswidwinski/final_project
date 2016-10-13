@@ -23,11 +23,11 @@ void Txn::add_to_read_set(std::unordered_set<int> to_add) {
   }
 }
 
-std::shared_ptr<std::unordered_set<int>> Txn::get_write_set_handle() const {
+std::shared_ptr<std::set<int>> Txn::get_write_set_handle() const {
   return write_set; 
 };
 
-std::shared_ptr<std::unordered_set<int>> Txn::get_read_set_handle() const {
+std::shared_ptr<std::set<int>> Txn::get_read_set_handle() const {
   return read_set;
 }
 
