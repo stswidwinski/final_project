@@ -2,33 +2,30 @@
 #include "schedule/lockqueue.h"
 #include "lock/lock.h"
 
-void LockQueue::insert_stage_into_queue(std::shared_ptr<LockStage> stage) {
-  MutexRWGuard write_lock(&mutex_, LockType::exclusive);
-  if (current == nullptr) {
-    // no request present at the time of insertion
-    current = stage;
-    newest = stage;
-    return;
-  }
-
-  // queue is not empty.
-  newest->set_next_stage(stage);
-  newest = stage;
-}
-
 void LockQueue::insert_into_queue(Txn* t, LockType type) {
   auto prep_stage_and_insert = [&t, &type, this]() {
-    insert_stage_into_queue(
-        std::make_shared<LockStage>(std::unordered_set<Txn*>{t}, type));
+    std::shared_ptr<LockStage> stage = 
+      std::make_shared<LockStage>(std::unordered_set<Txn*>{t}, type);
+    
+    if (current == nullptr) {
+      // no request present at the time of insertion
+      current = stage;
+      newest = stage;
+      return;
+    }
+
+    // queue is not empty.
+    newest->set_next_stage(stage);
+    newest = stage;
   };
 
+  MutexRWGuard write_lock(&mutex_, LockType::exclusive);
   if (type == LockType::exclusive) {
     prep_stage_and_insert();
     return;
   }
 
   // shared lock request!
-  MutexRWGuard write_lock(&mutex_, LockType::exclusive);
   // attempt to add t to newest if that exists
   if (newest != nullptr) {
     if (newest->add_to_stage(t, type)) {
@@ -48,10 +45,12 @@ std::unordered_set<Txn*> LockQueue::finalize_txn() {
     // the current stage has been fully processed
     ASSERT(current->get_current_holders() == 0);
 
-    for(const auto& txn_pt : current->get_next_request()->get_requesters()) {
-      if (txn_pt->lock_granted()) {
-        // txn has all the locks needed;
-        ready_txns.insert(txn_pt);
+    if (current->get_next_request() != nullptr) {
+      for(const auto& txn_pt : current->get_next_request()->get_requesters()) {
+        if (txn_pt->lock_granted()) {
+          // txn has all the locks needed;
+          ready_txns.insert(txn_pt);
+        }
       }
     }
 
@@ -101,7 +100,7 @@ bool LockQueue::merge_into_lock_queue(std::shared_ptr<LockQueue> lq_ptr) {
 
 std::unordered_set<Txn*> LockQueue::signal_lock_granted() {
   std::unordered_set<Txn*> ready_txns;
-  for (auto& elt : current->get_requesters()) {
+  for (const auto& elt : current->get_requesters()) {
     if(elt->lock_granted()) {
       // all locks for txn granted
       ready_txns.insert(elt);

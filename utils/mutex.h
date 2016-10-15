@@ -108,6 +108,7 @@ class MutexRWGuard {
     } else {
       mutex_->WriteLock();
     }
+    locked = true;
   }
 
   inline void Unlock() {
@@ -119,10 +120,12 @@ class MutexRWGuard {
   }
 
   ~MutexRWGuard() {
-    Unlock();
+    if (locked)
+      Unlock();
   }
  private:
   MutexRW* mutex_;
+  bool locked;
 };
 
 

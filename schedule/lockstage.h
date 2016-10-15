@@ -22,7 +22,7 @@ public:
    {};
 
   LockStage(std::unordered_set<Txn*> reqers, LockType t):
-    holders(0),
+    holders(reqers.size()),
     next_request(nullptr),
     type(t),
     requesters(reqers)
