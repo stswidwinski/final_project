@@ -46,6 +46,10 @@ bool Txn::lock_granted() {
   locks_granted ++;
   ASSERT(locks_granted <= locks_needed);
 
+  return has_all_locks();
+}
+
+bool Txn::has_all_locks() {
   return locks_granted == locks_needed;
 }
 

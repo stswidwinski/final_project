@@ -39,6 +39,8 @@ public:
 
   // returns true if all locks have been granted and false otherwise.
   bool lock_granted();
+  // returns true if all locks have been granted and false otherwise
+  bool has_all_locks();
 
 private:
   std::shared_ptr<std::set<int>> write_set;

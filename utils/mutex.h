@@ -113,10 +113,12 @@ class MutexRWGuard {
 
   inline void Unlock() {
     mutex_->Unlock();
+    locked = false;
   }
 
   inline void WriteLock() {
     mutex_->WriteLock();
+    locked = true;
   }
 
   ~MutexRWGuard() {

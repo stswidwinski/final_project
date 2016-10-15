@@ -51,7 +51,7 @@ void LockTable::finalize_lock_request(int lck) {
 
   auto ready_txns = lock_q_pt->finalize_txn();
   for (auto& txn_ptr : ready_txns) {
-    if (txn_ptr->lock_granted()) {
+    if (txn_ptr->has_all_locks()) {
       // all locks for this txn have been grantes
       ready_queue.add_txn(txn_ptr);
     }

@@ -34,9 +34,15 @@ private:
   MutexRW mutex_;
 public:
   Txn* get_next_ready_txn();
+  // Inserts lock request into the lock table without granting locks. 
+  // Used by the batch schedule only.
   void insert_lock_request(Txn* t, int lck, LockType type);
   void finalize_lock_request(int lck);
+  // Merge lt into this lock table. Grants locks if appropriate.
   void merge_into_lock_table(LockTable& lt);
+
+  friend void InsertLockRequestTest();
+  friend void FinalizeLockRequestTest(); 
 };
 
 #endif // _LOCK_TABLE_H_
