@@ -66,7 +66,41 @@ TEST(FinalizeLockRequestTest){
   END;
 }
 
+TEST(MergeTest) {
+  LockTable lt1;
+  LockTable lt2;
+  Txn txn(
+    0,
+    std::shared_ptr<std::set<int>>(new std::set<int>({1})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({2})));
+  Txn txn2(
+    0,
+    std::shared_ptr<std::set<int>>(new std::set<int>({1})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({})));
+  Txn txn3(
+    0,
+    std::shared_ptr<std::set<int>>(new std::set<int>({1})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({})));
+
+  // lt1 is the table we will be merging into.
+  lt1.insert_lock_request(&txn, 1, LockType::shared);
+  lt1.insert_lock_request(&txn, 2, LockType::exclusive);
+  lt1.insert_lock_request(&txn, 3, LockType::exclusive);
+  
+  lt2.insert_lock_request(&txn2, 1, LockType::shared);
+  lt2.insert_lock_request(&txn, 2, LockType::exclusive);
+  lt2.insert_lock_request(&txn3, 3, LockType::shared); 
+
+  lt1.merge_into_lock_table(lt2);
+  // txn2 should be in the ready queue
+  EXPECT_EQ(1, lt1.ready_queue.ready_queue.size());
+  EXPECT_EQ(&txn2, lt1.get_next_ready_txn());
+
+  END;
+}
+
 int main(int argc, char** argv) {
   InsertLockRequestTest();
   FinalizeLockRequestTest();
+  MergeTest();
 }

@@ -19,6 +19,8 @@ public:
   // after the current stage has been finalized.
   std::unordered_set<Txn*> finalize_txn();
   // Returns true if merge results in granting locks.
+  //
+  // Does NOT change lq_ptr in any persistent way.
   bool merge_into_lock_queue(std::shared_ptr<LockQueue> lq_ptr);
   // signals all txns within current LockStage about lock being
   // granted

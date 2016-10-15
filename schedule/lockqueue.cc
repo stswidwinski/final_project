@@ -76,6 +76,9 @@ bool LockQueue::merge_into_lock_queue(std::shared_ptr<LockQueue> lq_ptr) {
   }
 
   bool locks_granted = false;
+  std::shared_ptr<LockStage> begining_of_append = lq_ptr->current;
+  std::shared_ptr<LockStage> end_of_append = lq_ptr->newest;
+
   // coalesce the newest with lq_ptr->current if both are shared
   if (lq_ptr->current &&
       lq_ptr->current->get_lock_type() == LockType::shared &&
@@ -88,22 +91,23 @@ bool LockQueue::merge_into_lock_queue(std::shared_ptr<LockQueue> lq_ptr) {
     }
     
     // move the pointer
+    begining_of_append = lq_ptr->current->get_next_request();
     if (lq_ptr->newest == lq_ptr->current)
-      lq_ptr->newest = lq_ptr->newest->get_next_request();
-    lq_ptr->current = lq_ptr->current->get_next_request();
+      end_of_append = nullptr;
 
     // at coalescence, locks are granted if the stage 
     // being coalesced into is also current!
     locks_granted = (newest == current);
   }
 
-  // newest is only moved if lq_ptr is non-null!
-  newest->set_next_stage(lq_ptr->current);
-  newest = lq_ptr->current == nullptr ? newest : lq_ptr->current;
+  // append the rest of lq_ptr to the current lock queue.
+  newest->set_next_stage(begining_of_append);
+  newest = end_of_append == nullptr ? newest : end_of_append;
   return locks_granted;
 }
 
 std::unordered_set<Txn*> LockQueue::signal_lock_granted() {
+  MutexRWGuard read_lock(&mutex_, LockType::shared);
   std::unordered_set<Txn*> ready_txns;
   for (const auto& elt : current->get_requesters()) {
     if(elt->lock_granted()) {

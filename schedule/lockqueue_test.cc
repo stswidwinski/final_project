@@ -16,8 +16,6 @@ Txn test_txn2(
   std::shared_ptr<std::set<int>>(new std::set<int>({1})),
   std::shared_ptr<std::set<int>>(new std::set<int>({2})));
 
-
-
 TEST(ExclusiveTxnQueueingTest) {
   LockQueue lq;
   EXPECT_TRUE(lq.current == nullptr);

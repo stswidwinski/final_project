@@ -43,6 +43,7 @@ public:
 
   friend void InsertLockRequestTest();
   friend void FinalizeLockRequestTest(); 
+  friend void MergeTest();
 };
 
 #endif // _LOCK_TABLE_H_
