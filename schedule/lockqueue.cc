@@ -77,12 +77,16 @@ bool LockQueue::merge_into_lock_queue(std::shared_ptr<LockQueue> lq_ptr) {
 
   bool locks_granted = false;
   // coalesce the newest with lq_ptr->current if both are shared
-  if (lq_ptr->current->get_lock_type() == LockType::shared &&
+  if (lq_ptr->current &&
+      lq_ptr->current->get_lock_type() == LockType::shared &&
       newest->get_lock_type() == LockType::shared) {
-      // insert all the txn in lq_ptr.current into newest
+    // insert all the txn in lq_ptr.current into newest
     for (auto& txn_ptr : lq_ptr->current->get_requesters()) {
-      insert_into_queue(txn_ptr, LockType::shared);
+      if(newest->add_to_stage(txn_ptr, LockType::shared) == false) {
+        ASSERT(false);
+      }
     }
+    
     // move the pointer
     if (lq_ptr->newest == lq_ptr->current)
       lq_ptr->newest = lq_ptr->newest->get_next_request();
@@ -93,8 +97,9 @@ bool LockQueue::merge_into_lock_queue(std::shared_ptr<LockQueue> lq_ptr) {
     locks_granted = (newest == current);
   }
 
+  // newest is only moved if lq_ptr is non-null!
   newest->set_next_stage(lq_ptr->current);
-  newest = lq_ptr->current;
+  newest = lq_ptr->current == nullptr ? newest : lq_ptr->current;
   return locks_granted;
 }
 

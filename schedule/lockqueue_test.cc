@@ -202,6 +202,58 @@ TEST(SignalLockGrantedTest) {
   END;
 }
 
+TEST(SimpleMergingTest) {
+  LockQueue lq1;
+  LockQueue lq2;
+
+  lq1.insert_into_queue(&test_txn, LockType::exclusive);
+  lq2.insert_into_queue(&test_txn2, LockType::shared);
+  
+  // merge without coalescing
+  EXPECT_FALSE(lq2.merge_into_lock_queue(
+        std::make_shared<LockQueue>(lq1)));
+  EXPECT_TRUE(lq2.current != lq2.newest);
+  EXPECT_EQ(1, lq2.current->get_requesters().size());
+  EXPECT_EQ(1, lq2.newest->get_requesters().size());
+
+  // merge with coalescing.
+  LockQueue lq3;
+  LockQueue lq4;
+
+  lq3.insert_into_queue(&test_txn, LockType::shared);
+  lq4.insert_into_queue(&test_txn2, LockType::shared);
+
+  EXPECT_TRUE(lq3.merge_into_lock_queue(
+        std::make_shared<LockQueue>(lq4)));
+  EXPECT_EQ(2, lq3.current->get_requesters().size());
+  EXPECT_TRUE(lq3.current == lq3.newest);
+  EXPECT_TRUE(nullptr != lq3.current);
+
+  // coalescing should not happen if shared lock is not the newest!
+  LockQueue lq5;
+  LockQueue lq6;
+
+  lq5.insert_into_queue(&test_txn, LockType::shared);
+  lq5.insert_into_queue(&test_txn, LockType::exclusive);
+  lq6.insert_into_queue(&test_txn2, LockType::shared);
+
+  EXPECT_FALSE(lq5.merge_into_lock_queue(
+        std::make_shared<LockQueue>(lq6)));
+  EXPECT_TRUE(lq5.current->get_next_request()->get_next_request() == lq5.newest);
+
+  // a merge with an empty lock queue does not cause problems
+  LockQueue lq7;
+  LockQueue lq8;
+  
+  lq7.insert_into_queue(&test_txn, LockType::exclusive);
+  EXPECT_FALSE(lq7.merge_into_lock_queue(
+        std::make_shared<LockQueue>(lq8)));
+  EXPECT_TRUE(lq7.current == lq7.newest);
+  EXPECT_TRUE(lq7.current != nullptr);
+
+  END;
+}
+
 int main(int argc, char** argv) {
   ExclusiveTxnQueueingTest();
   SharedTxnQueueingTest();
@@ -209,4 +261,5 @@ int main(int argc, char** argv) {
   FinalizeTxnTest();
   FinalizeTxnMultiLockTest();
   SignalLockGrantedTest();
+  SimpleMergingTest();
 }

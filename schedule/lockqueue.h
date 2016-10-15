@@ -34,6 +34,7 @@ public:
   friend void FinalizeTxnTest();
   friend void FinalizeTxnMultiLockTest();
   friend void SignalLockGrantedTest();
+  friend void SimpleMergingTest();
 };
 
 #endif // _LOCK_QUEUE_H_
