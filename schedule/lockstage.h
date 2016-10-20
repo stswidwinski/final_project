@@ -39,6 +39,8 @@ public:
   std::shared_ptr<LockStage> get_next_request();
   std::unordered_set<Txn*>& get_requesters();
   LockType get_lock_type();
+
+  friend void BatchScheduleInsert();
 };
 
 #endif // _LOCK_STAGE_H_

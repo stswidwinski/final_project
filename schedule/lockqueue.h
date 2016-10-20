@@ -37,6 +37,7 @@ public:
   friend void FinalizeTxnMultiLockTest();
   friend void SignalLockGrantedTest();
   friend void SimpleMergingTest();
+  friend void BatchScheduleInsert();
 };
 
 #endif // _LOCK_QUEUE_H_
