@@ -1,5 +1,7 @@
+#include "lock/lock.h"
 #include "schedule/batchschedule.h"
 #include "utils/testing.h"
+#include "schedule/locktable.h"
 
 TEST(BatchScheduleInsert) {
   BatchSchedule bs;

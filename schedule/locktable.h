@@ -45,6 +45,8 @@ public:
   friend void FinalizeLockRequestTest(); 
   friend void MergeTest();
   friend void BatchScheduleInsert();
+  friend void ScheduleMergingIntoEmptyTest();
+  friend void ScheduleMergingIntoExistingTest();
 };
 
 #endif // _LOCK_TABLE_H_

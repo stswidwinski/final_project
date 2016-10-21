@@ -12,6 +12,9 @@ public:
   // blocks until a ready txn is available.
   Txn* get_txn_to_execute();
   void finalize_txn(Txn* t);
+
+  friend void ScheduleMergingIntoEmptyTest();
+  friend void ScheduleMergingIntoExistingTest();
 };
 
 #endif // _SCHEDULE_H_
