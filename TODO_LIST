@@ -1,4 +1,19 @@
 1. Create a simulation framework with tests
+  a. Create a function to actually make a schedule from a stream of txns. 
+    NOTE: for now we assume no knowledge of the locks being held when building the next batch. 
+  b. Decide on the tests
+  c. Compare between:
+    1) Real-time graph building (v. short batches)
+    2) Global graph building (single batch)
+    3) Medium (1 or 2 sizes) batch sizes
+
+    NOTE: 
+        The metric we look at is the latency of the system and the total time necessary to complete.
+    
+    Assumptions:
+        - Txns come in uniformtly at random times. The time necessary to complete a txn is also uniform and random from a range and does not depend on the # of locks requested.
+        - # of locks requested is random 
+        - Contention will be controlled for
 2. Tests within the simulation framework
 3. Addition of different sorting methods for txns within the simulation framework. Inclusion of those for tests.
 4. 
