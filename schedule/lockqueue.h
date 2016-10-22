@@ -28,6 +28,14 @@ public:
   // Returns the set of transactions that have received
   // all of its locks.
   std::unordered_set<Txn*> signal_lock_granted(); 
+  // two lockqueues are equivalent if every elt within the queue
+  // is equal to that of the other one in the == sense.
+  //
+  // NOTE
+  //    THIS IS NOT THREAD SAFE AND SHOULD ONLY BE CALLED
+  //    FROM SINGLE THREADED TESTS.
+  bool operator==(const LockQueue& lq) const;
+  bool operator!=(const LockQueue& lq) const;
 
   // A bunch of friend test functions.
   friend void ExclusiveTxnQueueingTest(); 

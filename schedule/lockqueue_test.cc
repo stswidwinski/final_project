@@ -252,6 +252,38 @@ TEST(SimpleMergingTest) {
   END;
 }
 
+TEST(EqualityTest) {
+  LockQueue lq1;
+  LockQueue lq2;
+
+  EXPECT_TRUE(lq1 == lq2);
+
+  // insert exclusive lock.
+  lq1.insert_into_queue(&test_txn, LockType::exclusive);
+  EXPECT_FALSE(lq1 == lq2);
+  lq2.insert_into_queue(&test_txn, LockType::exclusive);
+  EXPECT_TRUE(lq1 == lq2);
+
+  // insert another exclusive lock
+  lq1.insert_into_queue(&test_txn, LockType::exclusive);
+  EXPECT_FALSE(lq1 == lq2);
+  lq2.insert_into_queue(&test_txn, LockType::exclusive);
+  EXPECT_TRUE(lq1 == lq2);
+
+  // insert a share lock afterwards.
+  lq1.insert_into_queue(&test_txn, LockType::shared);
+  EXPECT_FALSE(lq1 == lq2);
+  lq2.insert_into_queue(&test_txn, LockType::shared);
+  EXPECT_TRUE(lq1 == lq2);
+
+  // insert another exclusive lock afterwards
+  lq1.insert_into_queue(&test_txn, LockType::exclusive);
+  EXPECT_FALSE(lq1 == lq2);
+  lq2.insert_into_queue(&test_txn, LockType::exclusive);
+  EXPECT_TRUE(lq1 == lq2);
+  
+  END;
+}
 int main(int argc, char** argv) {
   ExclusiveTxnQueueingTest();
   SharedTxnQueueingTest();
@@ -260,4 +292,5 @@ int main(int argc, char** argv) {
   FinalizeTxnMultiLockTest();
   SignalLockGrantedTest();
   SimpleMergingTest();
+  EqualityTest();
 }
