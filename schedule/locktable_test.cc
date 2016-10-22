@@ -8,6 +8,11 @@ Txn test_txn(
   std::shared_ptr<std::set<int>>(new std::set<int>({1})),
   std::shared_ptr<std::set<int>>(new std::set<int>({2})));
 
+Txn test_txn_2(
+  0,
+  std::shared_ptr<std::set<int>>(new std::set<int>({1})),
+  std::shared_ptr<std::set<int>>(new std::set<int>({2})));
+
 // NOTE:
 //    Lock request insertion is so closely coupled witht he underlying
 //    LockQueue that the main point of the test is to check whether
@@ -99,8 +104,70 @@ TEST(MergeTest) {
   END;
 }
 
+TEST(EqualityTest) {
+  LockTable lt1;
+  LockTable lt2;
+
+  // basic insertion of a single exclusive lock.
+  EXPECT_TRUE(lt1 == lt2);
+  lt1.insert_lock_request(&test_txn, 1, LockType::exclusive);
+  EXPECT_FALSE(lt1 == lt2);
+  lt2.insert_lock_request(&test_txn, 1, LockType::exclusive);
+  EXPECT_TRUE(lt1 == lt2);
+
+  // insertion of a different lock. 
+  lt1.insert_lock_request(&test_txn, 2, LockType::exclusive);
+  EXPECT_FALSE(lt1 == lt2);
+  lt2.insert_lock_request(&test_txn, 2, LockType::exclusive);
+  EXPECT_TRUE(lt1 == lt2);
+  
+  // basic insertion of multiple exclusive locks
+  lt1.insert_lock_request(&test_txn, 1, LockType::exclusive);
+  lt1.insert_lock_request(&test_txn, 1, LockType::exclusive);
+  EXPECT_FALSE(lt1 == lt2);
+  lt2.insert_lock_request(&test_txn, 1, LockType::exclusive);
+  EXPECT_FALSE(lt1 == lt2);
+  lt2.insert_lock_request(&test_txn, 1, LockType::exclusive);
+  EXPECT_TRUE(lt1 == lt2);
+
+  LockTable lt3;
+  LockTable lt4;
+
+  // basic insertion of a single shared lock.
+  lt3.insert_lock_request(&test_txn, 1, LockType::shared);
+  EXPECT_FALSE(lt3 == lt4);
+  lt4.insert_lock_request(&test_txn, 1, LockType::shared);
+  EXPECT_TRUE(lt3 == lt4);
+
+  // basic insertion of different test_txns
+  lt3.insert_lock_request(&test_txn_2, 1, LockType::shared);
+  EXPECT_FALSE(lt3 == lt4);
+  lt4.insert_lock_request(&test_txn_2, 1, LockType::shared);
+  EXPECT_TRUE(lt3 == lt4);
+  
+  LockTable lt5;
+  LockTable lt6;
+  Txn fake_txn(
+    0,
+    std::shared_ptr<std::set<int>>(new std::set<int>({1})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({2})));   
+  Txn txn(
+    0,
+    std::shared_ptr<std::set<int>>(new std::set<int>({1})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({2})));
+  Txn txn2(
+    0,
+    std::shared_ptr<std::set<int>>(new std::set<int>({1})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({})));
+
+  // TODO:
+  //     Tests for the ready queue differences ONLY.
+  END;
+}
+
 int main(int argc, char** argv) {
   InsertLockRequestTest();
   FinalizeLockRequestTest();
   MergeTest();
+  EqualityTest();
 }

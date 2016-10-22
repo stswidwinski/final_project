@@ -41,6 +41,40 @@ std::shared_ptr<LockQueue> LockTable::get_lock_queue(int lck) {
   return lock_table.emplace(lck, std::make_shared<LockQueue>()).first->second;
 }
 
+bool LockTable::operator==(const LockTable& lt) const {
+  // we must have the same number of elt in the lock tables.
+  if (lock_table.size() != lt.lock_table.size())
+    return false;
+
+  // the ready queues must have the same size.
+  if (ready_queue.ready_queue.size() != lt.ready_queue.ready_queue.size())
+    return false;
+
+  // every element in lock_table must be present in lts lock table 
+  // and map to the same elt.
+  for (auto entry : lock_table) {
+    if (lt.lock_table.find(entry.first) == lt.lock_table.end())
+      return false;
+
+    if ((*entry.second) != (*lt.lock_table.find(entry.first)->second))
+      return false;
+  }
+
+  // every elt in ready queue must be equivalent.
+  auto usIt = ready_queue.ready_queue.begin();
+  auto theyIt = lt.ready_queue.ready_queue.begin();
+  for (; usIt != ready_queue.ready_queue.end(); usIt++, theyIt++) {
+    if (*usIt != *theyIt)
+      return false;
+  }
+
+  return true;
+}
+
+bool LockTable::operator!=(const LockTable& lt) const {
+  return !(LockTable::operator==(lt));
+}
+
 void LockTable::insert_lock_request(Txn* t, int lck, LockType type) {
   get_lock_queue(lck)->insert_into_queue(t, type);
 }

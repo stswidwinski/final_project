@@ -32,6 +32,7 @@ private:
   struct ReadyTxnQueue ready_queue;
   std::unordered_map<int, std::shared_ptr<LockQueue>> lock_table;
   MutexRW mutex_;
+
 public:
   Txn* get_next_ready_txn();
   // Inserts lock request into the lock table without granting locks. 
@@ -40,6 +41,17 @@ public:
   void finalize_lock_request(int lck);
   // Merge lt into this lock table. Grants locks if appropriate.
   void merge_into_lock_table(LockTable& lt);
+  // Two LockTables are equal if 
+  //    1) they contain the same elements
+  //      and the lockqueues are equal for every elements
+  //    2) the ready queue contains the same elements in the
+  //      same order.
+  //
+  // NOTE:
+  //    THIS FUNCTION IS NOT THREAD SAFE. USE IN SINGLE-THREAD
+  //    TESTS ONLY.
+  bool operator==(const LockTable& lt) const;
+  bool operator!=(const LockTable& lt) const;
 
   friend void InsertLockRequestTest();
   friend void FinalizeLockRequestTest(); 
