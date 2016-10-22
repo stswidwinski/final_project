@@ -59,6 +59,30 @@ TEST(BatchScheduleInsert) {
   END; 
 }
 
+TEST(BatchScheduleCreation) {
+  std::unique_ptr<std::vector<Txn*>> txns = std::make_unique<std::vector<Txn*>>();
+   Txn test_txn_1(
+    0,
+    std::shared_ptr<std::set<int>>(new std::set<int>({1, 3})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({2})));
+
+  Txn test_txn_2(
+    0,
+    std::shared_ptr<std::set<int>>(new std::set<int>({1})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({2, 3, 4})));
+
+  txns->push_back(&test_txn_1);
+  txns->push_back(&test_txn_2);
+
+  // create a schedule and make sure that it has been put together
+  // correctly.
+  //BatchSchedule& bs = BatchSchedule::build_batch_schedule(std::move(txns));
+  // TODO: 
+  //    These checks are nearly identical to those from above. Delete repeting
+  //    chunk and abstract that.
+  END;
+}
+
 int main(int argc, char** argv) {
   BatchScheduleInsert();
   return 0;

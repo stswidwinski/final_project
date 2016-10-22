@@ -122,5 +122,6 @@ TEST(ScheduleMergingIntoExistingTest) {
 int main(int argc, char** argv) {
   ScheduleMergingIntoEmptyTest();
   ScheduleMergingIntoExistingTest();
+
   return 0;
 }
