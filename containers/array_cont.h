@@ -18,7 +18,7 @@ public:
  Txn* get_next_min_elt() override;
  void remove_former_min() override;
  void sort_remaining() override;
-
+ unsigned int get_remaining_count() override;
  virtual ~ArrayContainer() {};
 
 private:

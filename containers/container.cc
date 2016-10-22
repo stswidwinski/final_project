@@ -17,9 +17,10 @@ public:
   // remove the former minimum from the container. Does not guarantee 
   // that the memory will be freed.
   virtual void remove_former_min() = 0;
-  // reset the container to the state at which it was created.
-  // Performance is better than that of creating a new object.
+  // sort the elements still within the container.
   virtual void sort_remaining() = 0;
+  // get the number of elements still within the container
+  virtual unsigned int get_remaining_count() = 0;
 
   std::unique_ptr<std::vector<Txn>> txn_arr;
   

@@ -27,7 +27,13 @@ TEST(ArrayContainerTest) {
     EXPECT_EQ(i, tmp->get_id());
 
     if ( (i % 2) == 0) {
+      EXPECT_EQ(
+          100 - i/2,
+          c.get_remaining_count());
       c.remove_former_min();
+      EXPECT_EQ(
+          100 - i/2 - 1,
+          c.get_remaining_count());
     }
   }
 

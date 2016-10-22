@@ -25,3 +25,7 @@ void ArrayContainer::sort_remaining() {
   std::sort(txn_arr->begin() + current_barrier_index, txn_arr->end());
   current_min_index = current_barrier_index;
 }
+
+unsigned int ArrayContainer::get_remaining_count() {
+  return txn_arr->size() - current_barrier_index;
+}
