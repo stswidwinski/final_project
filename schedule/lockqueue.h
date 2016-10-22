@@ -13,7 +13,19 @@ private:
   std::shared_ptr<LockStage> current;
   std::shared_ptr<LockStage> newest;
   MutexRW mutex_;
+
 public:
+  LockQueue() {};
+  LockQueue(std::shared_ptr<LockStage> cur):
+    current(cur),
+    newest(cur) 
+  {}
+
+  LockQueue(std::shared_ptr<LockStage> cur, std::shared_ptr<LockStage> newe):
+    current(cur),
+    newest(newe)
+  {}
+
   void insert_into_queue(Txn* t, LockType type);
   // Returns the set of txns that have all the required locks
   // after the current stage has been finalized.
