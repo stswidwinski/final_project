@@ -14,6 +14,8 @@ private:
   std::unordered_set<Txn*> requesters;
 
 public:
+  // TODO: 
+  //    Phase out holders.
   LockStage():
     holders(0),
     next_request(nullptr),
@@ -21,9 +23,12 @@ public:
     requesters({})
    {};
 
-  LockStage(std::unordered_set<Txn*> reqers, LockType t):
+  LockStage(
+      std::unordered_set<Txn*> reqers, 
+      LockType t, 
+      std::shared_ptr<LockStage> ns = nullptr):
     holders(reqers.size()),
-    next_request(nullptr),
+    next_request(ns),
     type(t),
     requesters(reqers)
    {};
