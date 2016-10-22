@@ -1,5 +1,16 @@
 #include "schedule/lockstage.h"
 
+bool LockStage::operator==(const LockStage& ls) const {
+  return (
+      holders == ls.holders &&
+      type == ls.type &&
+      requesters == ls.requesters);
+}
+
+bool LockStage::operator!=(const LockStage& ls) const {
+  return !(LockStage::operator==(ls));
+}
+
 bool LockStage::add_to_stage(Txn* txn, LockType req_type) {
   if ((req_type == LockType::exclusive && requesters.size() != 0) ||
       type == LockType::exclusive) {

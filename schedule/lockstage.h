@@ -40,6 +40,14 @@ public:
   std::unordered_set<Txn*>& get_requesters();
   LockType get_lock_type();
 
+  // Two LockStages are equal if they holders, type and requesters
+  // are the same. The next_request may be different,
+  //
+  // NOTE:
+  //    USE IN TESTS ONLY.
+  bool operator==(const LockStage& ls) const;
+  bool operator!=(const LockStage& ls) const;
+
   friend void BatchScheduleInsert();
 };
 
