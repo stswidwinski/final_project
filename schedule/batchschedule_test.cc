@@ -16,73 +16,45 @@ TEST(BatchScheduleInsert) {
     std::shared_ptr<std::set<int>>(new std::set<int>({1})),
     std::shared_ptr<std::set<int>>(new std::set<int>({2, 3})));
 
-
   bs.add_txn(&test_txn_1);
   bs.add_txn(&test_txn_2);
   LockTable& lt = bs.get_lock_table();
   // The lock table for lock # 1 set properly
-  EXPECT_EQ(
-    lt.lock_table.find(1)->second->current->next_request,
-    lt.lock_table.find(1)->second->newest);
-  EXPECT_UNEQ(
-    lt.lock_table.find(1)->second->current,
-    lt.lock_table.find(1)->second->newest);
-  EXPECT_EQ(
-    lt.lock_table.find(1)->second->newest->requesters.size(), 
-    1);
-  EXPECT_TRUE(
-    lt.lock_table.find(1)->second->newest->type == LockType::exclusive);
-  EXPECT_TRUE(
-    lt.lock_table.find(1)->second->newest->requesters.find(&test_txn_2) !=
-    lt.lock_table.find(1)->second->newest->requesters.end());
-  EXPECT_EQ(
-    lt.lock_table.find(1)->second->current->requesters.size(), 
-    1);
-  EXPECT_TRUE(
-    lt.lock_table.find(1)->second->current->requesters.find(&test_txn_1) !=
-    lt.lock_table.find(1)->second->current->requesters.end());
-  EXPECT_TRUE(
-    lt.lock_table.find(1)->second->current->type == LockType::exclusive);
-    
+  LockStage expected_newest_1 = LockStage(
+    std::unordered_set<Txn*>{&test_txn_2},
+    LockType::exclusive);
+  LockStage expected_current_1 = LockStage(
+    std::unordered_set<Txn*>{&test_txn_1},
+    LockType::exclusive,
+    std::make_shared<LockStage>(expected_newest_1));
+  LockQueue expected_locktable_1 = LockQueue(
+    std::make_shared<LockStage>(expected_current_1),
+    std::make_shared<LockStage>(expected_newest_1));
+
+  EXPECT_TRUE(*(lt.lock_table.find(1)->second) == expected_locktable_1);
+  
   // The lock table for lock # 2 set properly
-  EXPECT_EQ(
-    lt.lock_table.find(2)->second->current,
-    lt.lock_table.find(2)->second->newest);
-  EXPECT_EQ(
-    lt.lock_table.find(2)->second->current->requesters.size(),
-    2);
-  EXPECT_TRUE(
-    lt.lock_table.find(2)->second->current->type ==
+  LockStage expected_new_cur_2 = LockStage(
+    std::unordered_set<Txn*>{&test_txn_1, &test_txn_2},
     LockType::shared);
-  EXPECT_TRUE(
-    lt.lock_table.find(2)->second->current->requesters.find(&test_txn_1) !=
-    lt.lock_table.find(2)->second->current->requesters.end());
-  EXPECT_TRUE(
-    lt.lock_table.find(2)->second->current->requesters.find(&test_txn_2) !=
-    lt.lock_table.find(2)->second->current->requesters.end());
+  LockQueue expected_queue_2 = LockQueue(
+    std::make_shared<LockStage>(expected_new_cur_2));
+
+  EXPECT_TRUE(*(lt.lock_table.find(2)->second) == expected_queue_2);
 
   // The lock table for lock # 3 set properly.
-  EXPECT_UNEQ(
-    lt.lock_table.find(3)->second->current,
-    lt.lock_table.find(3)->second->newest);
-  EXPECT_EQ(
-    lt.lock_table.find(3)->second->current->requesters.size(),
-    1);
-  EXPECT_TRUE(
-    lt.lock_table.find(3)->second->current->type ==
-    LockType::exclusive);
-  EXPECT_TRUE(
-    lt.lock_table.find(3)->second->current->requesters.find(&test_txn_1) !=
-    lt.lock_table.find(3)->second->current->requesters.end());
-  EXPECT_EQ(
-    lt.lock_table.find(3)->second->newest->requesters.size(),
-    1);
- EXPECT_TRUE(
-    lt.lock_table.find(3)->second->newest->type ==
+  LockStage expected_newest_3 = LockStage(
+    std::unordered_set<Txn*>{&test_txn_2},
     LockType::shared);
-  EXPECT_TRUE(
-    lt.lock_table.find(3)->second->newest->requesters.find(&test_txn_2) !=
-    lt.lock_table.find(3)->second->newest->requesters.end());
+  LockStage expected_current_3 = LockStage(
+    std::unordered_set<Txn*>{&test_txn_1},
+    LockType::exclusive,
+    std::make_shared<LockStage>(expected_newest_3));
+  LockQueue expected_queue_3 = LockQueue(
+    std::make_shared<LockStage>(expected_current_3),
+    std::make_shared<LockStage>(expected_newest_3));
+
+  EXPECT_TRUE(*(lt.lock_table.find(3)->second) == expected_queue_3);
   
   END; 
 }

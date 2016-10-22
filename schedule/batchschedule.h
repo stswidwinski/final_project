@@ -11,6 +11,8 @@ private:
 public:
   void add_txn(Txn* t);
   LockTable& get_lock_table();
+
+  bool operator==(const BatchSchedule& bs) const;
 };
 
 #endif // _BATCH_SCHEDULE_H_
