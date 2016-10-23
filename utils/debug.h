@@ -17,4 +17,11 @@
   do { (void)(sizeof(X)); } while (0)              
 #endif // DEBUG
 
+#ifdef DEBUG
+#define DEBUG_VARIABLE(TYPE, VAR_NAME)             \
+  TYPE VAR_NAME                                    
+#else
+#define DEBUG_VARIABLE(TYPE, VAR_NAME)
+#endif // DEBUG
+
 #endif // _DEBUG_H_

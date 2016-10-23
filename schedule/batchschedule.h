@@ -3,6 +3,8 @@
 
 #include "schedule/locktable.h"
 #include "txns/txn.h"
+#include "containers/container.cc"
+#include "utils/debug.h"
 
 #include <unordered_set>
 #include <memory>
@@ -12,6 +14,8 @@ class BatchSchedule {
 private:
   LockTable lock_table;
   void add_txn(std::shared_ptr<Txn> t);
+  // NOTE: used for debugging and testing only.
+  DEBUG_VARIABLE(std::unordered_set<int, std::shared<Txn>>, txns); 
 
 public:
   // Can be thought of as static constructor

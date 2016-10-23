@@ -30,6 +30,9 @@ std::unique_ptr<BatchSchedule> BatchSchedule::build_batch_schedule(
       // the ownership of t will now be spread out across multiple
       // lock table requests.
       std::shared_ptr<Txn> t{std::move(packing[i])};
+#ifdef DEBUG
+      txns.insert(t->get_id(), t);
+#endif
       bs->add_txn(t);
     }
   }
