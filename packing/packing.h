@@ -5,9 +5,6 @@
 #include <unordered_set>
 
 bool txn_conflicts(Txn* t, std::unordered_set<int>* ex, std::unordered_set<int>* sh) {
-  // TODO: 
-  //    Optimize this -- iterate through the smaller of two sets.
-
   auto t_ex = t->get_write_set_handle();
   auto t_sh = t->get_read_set_handle();
   auto contains = [] (std::unordered_set<int>* s, int elt) {
