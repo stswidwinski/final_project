@@ -11,15 +11,21 @@
 class BatchSchedule {
 private:
   LockTable lock_table;
+  void add_txn(std::shared_ptr<Txn> t);
 
 public:
-  void add_txn(Txn* t);
-  LockTable& get_lock_table();
   // Can be thought of as static constructor
   static std::unique_ptr<BatchSchedule> build_batch_schedule(
-      std::unique_ptr<std::vector<Txn>> batch);
+      std::unique_ptr<std::vector<std::unique_ptr<Txn>>> batch);
 
   bool operator==(const BatchSchedule& bs) const;
+
+  // tests that need access
+  friend void BatchScheduleInsert();
+  friend void ScheduleMergingIntoEmptyTest();
+  friend void ScheduleMergingIntoExistingTest();
+
+  friend class Schedule;  
 };
 
 #endif // _BATCH_SCHEDULE_H_

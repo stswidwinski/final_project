@@ -15,14 +15,14 @@
 class LockTable {
 private:
   struct ReadyTxnQueue {
-    std::list<Txn*> ready_queue;
+    std::list<std::shared_ptr<Txn>> ready_queue;
     std::mutex mutex_;
     std::condition_variable cv_;
     
     // blocks if necessary
-    void add_txn(Txn* t);
+    void add_txn(std::shared_ptr<Txn> t);
     // blocks until a txn is available
-    Txn* get_ready_txn();
+    std::shared_ptr<Txn> get_ready_txn();
   };
 
   // returns the pointer to the lock queue corresponding to
@@ -34,10 +34,10 @@ private:
   MutexRW mutex_;
 
 public:
-  Txn* get_next_ready_txn();
+  std::shared_ptr<Txn> get_next_ready_txn();
   // Inserts lock request into the lock table without granting locks. 
   // Used by the batch schedule only.
-  void insert_lock_request(Txn* t, int lck, LockType type);
+  void insert_lock_request(std::shared_ptr<Txn> t, int lck, LockType type);
   void finalize_lock_request(int lck);
   // Merge lt into this lock table. Grants locks if appropriate.
   void merge_into_lock_table(LockTable& lt);

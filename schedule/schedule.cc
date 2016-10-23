@@ -1,14 +1,14 @@
 #include "schedule/schedule.h"
 
 void Schedule::merge_batch_schedule_in(BatchSchedule& bs) {
-  lock_table.merge_into_lock_table(bs.get_lock_table());
+  lock_table.merge_into_lock_table(bs.lock_table);
 }
 
-Txn* Schedule::get_txn_to_execute() {
+std::shared_ptr<Txn> Schedule::get_txn_to_execute() {
   return lock_table.get_next_ready_txn();
 }
 
-void Schedule::finalize_txn(Txn* t) {
+void Schedule::finalize_txn(std::shared_ptr<Txn> t) {
   auto wh = t->get_write_set_handle();
   auto rh = t->get_read_set_handle();
 

@@ -1,28 +1,40 @@
 #include "containers/array_cont.h"
 #include <algorithm>
 
-Txn* ArrayContainer::get_next_min_elt() {
+Txn* ArrayContainer::peak_curr_min_elt() {
   if (current_min_index >= txn_arr->size() ||
       current_min_index < current_barrier_index)
     return nullptr;
 
-  current_min_index ++; 
-  return &((*txn_arr)[current_min_index - 1]);
+  return ((*txn_arr)[current_min_index]).get();
 }
 
-void ArrayContainer::remove_former_min() {
-  if (current_min_index < 1)
-    return;
+std::unique_ptr<Txn> ArrayContainer::take_curr_min_elt() {
+  if (current_min_index >= txn_arr->size() ||
+      current_min_index < current_barrier_index)
+    return nullptr;
 
-  // swap the former min with current barrier index.
-  Txn tmp = std::move((*txn_arr)[current_min_index - 1]);
-  (*txn_arr)[current_min_index - 1] = std::move((*txn_arr)[current_barrier_index]);
-  (*txn_arr)[current_barrier_index] = std::move(tmp);
+  // swap the current min with the current barrier index one
+  std::unique_ptr<Txn> min = std::move((*txn_arr)[current_min_index]);
+  (*txn_arr)[current_min_index] = std::move((*txn_arr)[current_barrier_index]);
+
+  current_min_index ++;
   current_barrier_index ++;
+  return min; 
+}
+
+void ArrayContainer::advance_to_next_min() {
+  current_min_index ++;
 }
 
 void ArrayContainer::sort_remaining() {
-  std::sort(txn_arr->begin() + current_barrier_index, txn_arr->end());
+  // sort by what is being pointed to.
+  std::sort(
+      txn_arr->begin() + current_barrier_index, 
+      txn_arr->end(),
+      [](std::unique_ptr<Txn> const& a, std::unique_ptr<Txn> const& b) {
+        return *a < *b;
+      });
   current_min_index = current_barrier_index;
 }
 

@@ -27,10 +27,10 @@ bool LockQueue::operator!=(const LockQueue& lq) const {
   return !(LockQueue::operator==(lq));
 }
 
-void LockQueue::insert_into_queue(Txn* t, LockType type) {
+void LockQueue::insert_into_queue(std::shared_ptr<Txn> t, LockType type) {
   auto prep_stage_and_insert = [&t, &type, this]() {
     std::shared_ptr<LockStage> stage = 
-      std::make_shared<LockStage>(std::unordered_set<Txn*>{t}, type);
+      std::make_shared<LockStage>(std::unordered_set<std::shared_ptr<Txn>>{t}, type);
     
     if (current == nullptr) {
       // no request present at the time of insertion
@@ -62,10 +62,10 @@ void LockQueue::insert_into_queue(Txn* t, LockType type) {
   prep_stage_and_insert();
 }
 
-std::unordered_set<Txn*> LockQueue::finalize_txn() {
+std::unordered_set<std::shared_ptr<Txn>> LockQueue::finalize_txn() {
   MutexRWGuard write_lock(&mutex_, LockType::exclusive);
   
-  std::unordered_set<Txn*> ready_txns;
+  std::unordered_set<std::shared_ptr<Txn>> ready_txns;
   if (current->decrement_holders() == 0) {
     // the current stage has been fully processed
     ASSERT(current->get_current_holders() == 0);
@@ -131,10 +131,10 @@ bool LockQueue::merge_into_lock_queue(std::shared_ptr<LockQueue> lq_ptr) {
   return locks_granted;
 }
 
-std::unordered_set<Txn*> LockQueue::signal_lock_granted() {
+std::unordered_set<std::shared_ptr<Txn>> LockQueue::signal_lock_granted() {
   MutexRWGuard read_lock(&mutex_, LockType::shared);
-  std::unordered_set<Txn*> ready_txns;
-  for (const auto& elt : current->get_requesters()) {
+  std::unordered_set<std::shared_ptr<Txn>> ready_txns;
+  for (auto elt : current->get_requesters()) {
     if(elt->lock_granted()) {
       // all locks for txn granted
       ready_txns.insert(elt);

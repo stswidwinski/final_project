@@ -26,10 +26,10 @@ public:
     newest(newe)
   {}
 
-  void insert_into_queue(Txn* t, LockType type);
+  void insert_into_queue(std::shared_ptr<Txn> t, LockType type);
   // Returns the set of txns that have all the required locks
   // after the current stage has been finalized.
-  std::unordered_set<Txn*> finalize_txn();
+  std::unordered_set<std::shared_ptr<Txn>> finalize_txn();
   // Returns true if merge results in granting locks.
   //
   // Does NOT change lq_ptr in any persistent way.
@@ -39,7 +39,7 @@ public:
   //
   // Returns the set of transactions that have received
   // all of its locks.
-  std::unordered_set<Txn*> signal_lock_granted(); 
+  std::unordered_set<std::shared_ptr<Txn>> signal_lock_granted(); 
   // two lockqueues are equivalent if every elt within the queue
   // is equal to that of the other one in the == sense.
   //

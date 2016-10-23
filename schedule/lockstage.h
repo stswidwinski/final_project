@@ -11,7 +11,7 @@ private:
   int holders;
   std::shared_ptr<LockStage> next_request;
   LockType type;
-  std::unordered_set<Txn*> requesters;
+  std::unordered_set<std::shared_ptr<Txn>> requesters;
 
 public:
   // TODO: 
@@ -24,7 +24,7 @@ public:
    {};
 
   LockStage(
-      std::unordered_set<Txn*> reqers, 
+      std::unordered_set<std::shared_ptr<Txn>> reqers, 
       LockType t, 
       std::shared_ptr<LockStage> ns = nullptr):
     holders(reqers.size()),
@@ -34,7 +34,7 @@ public:
    {};
 
   // Returns true if successful and false otherwise.
-  bool add_to_stage(Txn* txn, LockType req_type);
+  bool add_to_stage(std::shared_ptr<Txn> txn, LockType req_type);
   // Returns the new value of holders after decrementation.
   int decrement_holders();
   void set_next_stage(std::shared_ptr<LockStage> ls);
@@ -42,7 +42,7 @@ public:
   // getters
   int get_current_holders();
   std::shared_ptr<LockStage> get_next_request();
-  std::unordered_set<Txn*>& get_requesters();
+  std::unordered_set<std::shared_ptr<Txn>>& get_requesters();
   LockType get_lock_type();
 
   // Two LockStages are equal if they holders, type and requesters

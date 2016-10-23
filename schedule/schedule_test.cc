@@ -3,18 +3,18 @@
 
 TEST(ScheduleMergingIntoEmptyTest) {
   BatchSchedule bs;
-  Txn test_txn_1(
+  std::shared_ptr<Txn> test_txn_1 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1, 3})),
     std::shared_ptr<std::set<int>>(new std::set<int>({2})));
 
-  Txn test_txn_2(
+  std::shared_ptr<Txn> test_txn_2 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1})),
     std::shared_ptr<std::set<int>>(new std::set<int>({2, 3})));
 
-  bs.add_txn(&test_txn_1);
-  bs.add_txn(&test_txn_2);
+  bs.add_txn(test_txn_1);
+  bs.add_txn(test_txn_2);
  
   Schedule s;
   s.merge_batch_schedule_in(bs);
@@ -23,15 +23,15 @@ TEST(ScheduleMergingIntoEmptyTest) {
     1,
     s.lock_table.ready_queue.ready_queue.size());
   EXPECT_EQ(
-    &test_txn_1,
+    test_txn_1,
     s.get_txn_to_execute());
   EXPECT_EQ(
     0,
     s.lock_table.ready_queue.ready_queue.size());
 
-  s.finalize_txn(&test_txn_1);
+  s.finalize_txn(test_txn_1);
   EXPECT_EQ(
-    &test_txn_2,
+    test_txn_2,
     s.get_txn_to_execute());
   EXPECT_EQ(
     0,
@@ -42,17 +42,17 @@ TEST(ScheduleMergingIntoEmptyTest) {
 
 TEST(ScheduleMergingIntoExistingTest) {
   BatchSchedule bs;
-  Txn test_txn_1(
+  std::shared_ptr<Txn> test_txn_1 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1, 3})),
     std::shared_ptr<std::set<int>>(new std::set<int>({2})));
-  Txn test_txn_2(
+  std::shared_ptr<Txn> test_txn_2 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1})),
     std::shared_ptr<std::set<int>>(new std::set<int>({2, 3})));
 
-  bs.add_txn(&test_txn_1);
-  bs.add_txn(&test_txn_2);
+  bs.add_txn(test_txn_1);
+  bs.add_txn(test_txn_2);
   
   Schedule s;
   s.merge_batch_schedule_in(bs);
@@ -61,18 +61,18 @@ TEST(ScheduleMergingIntoExistingTest) {
   // and non-conflicting elements.
   BatchSchedule bs1;
   // should be ready inmediately.
-  Txn test_txn_3(
+  std::shared_ptr<Txn> test_txn_3 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({4})),
     std::shared_ptr<std::set<int>>(new std::set<int>({2})));
   // should not be ready inmediately.
-  Txn test_txn_4(
+  std::shared_ptr<Txn> test_txn_4 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1})),
     std::shared_ptr<std::set<int>>(new std::set<int>({2, 3})));
  
-  bs1.add_txn(&test_txn_3);
-  bs1.add_txn(&test_txn_4);
+  bs1.add_txn(test_txn_3);
+  bs1.add_txn(test_txn_4);
 
   s.merge_batch_schedule_in(bs1);
 
@@ -80,37 +80,37 @@ TEST(ScheduleMergingIntoExistingTest) {
     2,
     s.lock_table.ready_queue.ready_queue.size());
   EXPECT_EQ(
-    &test_txn_1,
+    test_txn_1,
     s.get_txn_to_execute());
   EXPECT_EQ(
-    &test_txn_3,
+    test_txn_3,
     s.get_txn_to_execute());
   EXPECT_EQ(
     0,
     s.lock_table.ready_queue.ready_queue.size());
 
-  s.finalize_txn(&test_txn_1);
+  s.finalize_txn(test_txn_1);
   EXPECT_EQ(
     1,
     s.lock_table.ready_queue.ready_queue.size());
   EXPECT_EQ(
-    &test_txn_2,
+    test_txn_2,
     s.get_txn_to_execute());
   EXPECT_EQ(
     0,
     s.lock_table.ready_queue.ready_queue.size());
 
-  s.finalize_txn(&test_txn_3);
+  s.finalize_txn(test_txn_3);
   EXPECT_EQ(
     0,
     s.lock_table.ready_queue.ready_queue.size());
 
-  s.finalize_txn(&test_txn_2);
+  s.finalize_txn(test_txn_2);
   EXPECT_EQ(
     1,
     s.lock_table.ready_queue.ready_queue.size());
   EXPECT_EQ(
-    &test_txn_4,
+    test_txn_4,
     s.get_txn_to_execute());
   EXPECT_EQ(
     0,

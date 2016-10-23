@@ -10,8 +10,8 @@ private:
 public:
   void merge_batch_schedule_in(BatchSchedule &bs);
   // blocks until a ready txn is available.
-  Txn* get_txn_to_execute();
-  void finalize_txn(Txn* t);
+  std::shared_ptr<Txn> get_txn_to_execute();
+  void finalize_txn(std::shared_ptr<Txn> t);
 
   friend void ScheduleMergingIntoEmptyTest();
   friend void ScheduleMergingIntoExistingTest();

@@ -2,27 +2,36 @@
 #define _CONTAINER_H_
 
 #include "txns/txn.h"
+
+#include <memory>
 #include <vector>
 
 class Container {
 protected:
   Container() = delete;
   Container(const Container& c) = delete;
-  Container(std::unique_ptr<std::vector<Txn>> txns): txn_arr(std::move(txns)) {};
+  Container(std::unique_ptr<std::vector<std::unique_ptr<Txn>>> txns): 
+    txn_arr(std::move(txns)) 
+  {};
 
 public:
-  // get the minimal txn as dictated by >= of Txn.
+  // get an observing pointer to the currently minimum element.
   // Returns nullptr if no elements left.
-  virtual Txn* get_next_min_elt() = 0;
-  // remove the former minimum from the container. Does not guarantee 
-  // that the memory will be freed.
-  virtual void remove_former_min() = 0;
+  virtual Txn* peak_curr_min_elt() = 0;
+  // get an owning pointer to the currently minimum element. The element
+  // is removed from the container. Obviously, we also move on to the next
+  // element. 
+  //
+  // Returns nullptr if no elements left.
+  virtual std::unique_ptr<Txn> take_curr_min_elt() = 0;
+  // advance to the next minimum element. 
+  virtual void advance_to_next_min() = 0;
   // sort the elements still within the container.
   virtual void sort_remaining() = 0;
   // get the number of elements still within the container
   virtual unsigned int get_remaining_count() = 0;
 
-  std::unique_ptr<std::vector<Txn>> txn_arr;
+  std::unique_ptr<std::vector<std::unique_ptr<Txn>>> txn_arr;
   
   virtual ~Container(){};
 };

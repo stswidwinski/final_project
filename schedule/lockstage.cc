@@ -11,7 +11,7 @@ bool LockStage::operator!=(const LockStage& ls) const {
   return !(LockStage::operator==(ls));
 }
 
-bool LockStage::add_to_stage(Txn* txn, LockType req_type) {
+bool LockStage::add_to_stage(std::shared_ptr<Txn> txn, LockType req_type) {
   if ((req_type == LockType::exclusive && requesters.size() != 0) ||
       type == LockType::exclusive) {
     return false;
@@ -39,7 +39,7 @@ std::shared_ptr<LockStage> LockStage::get_next_request() {
   return next_request;
 }
 
-std::unordered_set<Txn*>& LockStage::get_requesters() {
+std::unordered_set<std::shared_ptr<Txn>>& LockStage::get_requesters() {
   return requesters;
 }
 

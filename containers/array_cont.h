@@ -10,13 +10,14 @@ class ArrayContainer : public Container {
 public:
  ArrayContainer() = delete;
  ArrayContainer(const ArrayContainer& ac) = delete;
- ArrayContainer(std::unique_ptr<std::vector<Txn>> txns): 
+ ArrayContainer(std::unique_ptr<std::vector<std::unique_ptr<Txn>>> txns): 
      Container(std::move(txns)), current_min_index(0), current_barrier_index(0) {
    sort_remaining();
  };
 
- Txn* get_next_min_elt() override;
- void remove_former_min() override;
+ Txn* peak_curr_min_elt() override;
+ std::unique_ptr<Txn> take_curr_min_elt() override;
+ void advance_to_next_min() override;
  void sort_remaining() override;
  unsigned int get_remaining_count() override;
  virtual ~ArrayContainer() {};

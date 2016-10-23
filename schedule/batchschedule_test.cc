@@ -3,28 +3,30 @@
 #include "utils/testing.h"
 #include "schedule/locktable.h"
 
+typedef std::shared_ptr<Txn> txn_pt;
+
 TEST(BatchScheduleInsert) {
   BatchSchedule bs;
 
-  Txn test_txn_1(
+  txn_pt test_txn_1 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1, 3})),
     std::shared_ptr<std::set<int>>(new std::set<int>({2})));
 
-  Txn test_txn_2(
+  txn_pt test_txn_2 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1})),
     std::shared_ptr<std::set<int>>(new std::set<int>({2, 3})));
 
-  bs.add_txn(&test_txn_1);
-  bs.add_txn(&test_txn_2);
-  LockTable& lt = bs.get_lock_table();
+  bs.add_txn(test_txn_1);
+  bs.add_txn(test_txn_2);
+  LockTable& lt = bs.lock_table;
   // The lock table for lock # 1 set properly
   LockStage expected_newest_1 = LockStage(
-    std::unordered_set<Txn*>{&test_txn_2},
+    std::unordered_set<txn_pt>{test_txn_2},
     LockType::exclusive);
   LockStage expected_current_1 = LockStage(
-    std::unordered_set<Txn*>{&test_txn_1},
+    std::unordered_set<txn_pt>{test_txn_1},
     LockType::exclusive,
     std::make_shared<LockStage>(expected_newest_1));
   LockQueue expected_locktable_1 = LockQueue(
@@ -35,7 +37,7 @@ TEST(BatchScheduleInsert) {
   
   // The lock table for lock # 2 set properly
   LockStage expected_new_cur_2 = LockStage(
-    std::unordered_set<Txn*>{&test_txn_1, &test_txn_2},
+    std::unordered_set<txn_pt>{test_txn_1, test_txn_2},
     LockType::shared);
   LockQueue expected_queue_2 = LockQueue(
     std::make_shared<LockStage>(expected_new_cur_2));
@@ -44,10 +46,10 @@ TEST(BatchScheduleInsert) {
 
   // The lock table for lock # 3 set properly.
   LockStage expected_newest_3 = LockStage(
-    std::unordered_set<Txn*>{&test_txn_2},
+    std::unordered_set<txn_pt>{test_txn_2},
     LockType::shared);
   LockStage expected_current_3 = LockStage(
-    std::unordered_set<Txn*>{&test_txn_1},
+    std::unordered_set<txn_pt>{test_txn_1},
     LockType::exclusive,
     std::make_shared<LockStage>(expected_newest_3));
   LockQueue expected_queue_3 = LockQueue(
@@ -60,20 +62,20 @@ TEST(BatchScheduleInsert) {
 }
 
 TEST(BatchScheduleCreation) {
-  std::unique_ptr<std::vector<Txn*>> txns = std::make_unique<std::vector<Txn*>>();
-   Txn test_txn_1(
-    0,
-    std::shared_ptr<std::set<int>>(new std::set<int>({1, 3})),
-    std::shared_ptr<std::set<int>>(new std::set<int>({2})));
-
-  Txn test_txn_2(
-    0,
-    std::shared_ptr<std::set<int>>(new std::set<int>({1})),
-    std::shared_ptr<std::set<int>>(new std::set<int>({2, 3, 4})));
-
-  txns->push_back(&test_txn_1);
-  txns->push_back(&test_txn_2);
-
+//  std::unique_ptr<std::vector<Txn*>> txns = std::make_unique<std::vector<Txn*>>();
+//   Txn test_txn_1(
+//    0,
+//    std::shared_ptr<std::set<int>>(new std::set<int>({1, 3})),
+//    std::shared_ptr<std::set<int>>(new std::set<int>({2})));
+//
+//  Txn test_txn_2(
+//    0,
+//    std::shared_ptr<std::set<int>>(new std::set<int>({1})),
+//    std::shared_ptr<std::set<int>>(new std::set<int>({2, 3, 4})));
+//
+//  txns->push_back(test_txn_1);
+//  txns->push_back(test_txn_2);
+//
   // create a schedule and make sure that it has been put together
   // correctly.
   //BatchSchedule& bs = BatchSchedule::build_batch_schedule(std::move(txns));

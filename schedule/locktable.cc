@@ -1,19 +1,19 @@
 #include "schedule/locktable.h"
 #include "utils/debug.h"
 
-void LockTable::ReadyTxnQueue::add_txn(Txn* t) {
+void LockTable::ReadyTxnQueue::add_txn(std::shared_ptr<Txn> t) {
   std::unique_lock<std::mutex> lck(mutex_);
   ready_queue.push_back(t);
   cv_.notify_all();
 }
 
-Txn* LockTable::ReadyTxnQueue::get_ready_txn() {
+std::shared_ptr<Txn> LockTable::ReadyTxnQueue::get_ready_txn() {
   std::unique_lock<std::mutex> lck(mutex_);
   while (ready_queue.size() == 0) {
     cv_.wait(lck);
   }
 
-  Txn* t = ready_queue.front();
+  std::shared_ptr<Txn> t = ready_queue.front();
   ready_queue.pop_front();
   return t;
 }
@@ -75,7 +75,7 @@ bool LockTable::operator!=(const LockTable& lt) const {
   return !(LockTable::operator==(lt));
 }
 
-void LockTable::insert_lock_request(Txn* t, int lck, LockType type) {
+void LockTable::insert_lock_request(std::shared_ptr<Txn> t, int lck, LockType type) {
   get_lock_queue(lck)->insert_into_queue(t, type);
 }
 
@@ -101,13 +101,13 @@ void LockTable::merge_into_lock_table(LockTable &t) {
     if(lock_q_pt->merge_into_lock_queue(elt.second)) {
       // we must signal all the txns about locks granted!
       auto ready_txns = elt.second->signal_lock_granted();
-      for (auto& txn_ptr : ready_txns) {
+      for (auto txn_ptr : ready_txns) {
         ready_queue.add_txn(txn_ptr);
       }
     }
   }
 }
 
-Txn* LockTable::get_next_ready_txn() {
+std::shared_ptr<Txn> LockTable::get_next_ready_txn() {
   return ready_queue.get_ready_txn();
 }
