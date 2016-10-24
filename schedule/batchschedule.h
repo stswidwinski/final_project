@@ -6,7 +6,7 @@
 #include "containers/container.cc"
 #include "utils/debug.h"
 
-#include <unordered_set>
+#include <unordered_map>
 #include <memory>
 #include <vector>
 
@@ -14,8 +14,11 @@ class BatchSchedule {
 private:
   LockTable lock_table;
   void add_txn(std::shared_ptr<Txn> t);
+
+#ifdef DEBUG
   // NOTE: used for debugging and testing only.
-  DEBUG_VARIABLE(std::unordered_set<int, std::shared<Txn>>, txns); 
+  std::unordered_map<unsigned int, std::shared_ptr<Txn>> txns;
+#endif
 
 public:
   // Can be thought of as static constructor
@@ -28,6 +31,7 @@ public:
   friend void BatchScheduleInsert();
   friend void ScheduleMergingIntoEmptyTest();
   friend void ScheduleMergingIntoExistingTest();
+  friend void BatchScheduleCreationTest1();
 
   friend class Schedule;  
 };

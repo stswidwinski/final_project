@@ -4,6 +4,8 @@
 #include "schedule/locktable.h"
 #include "schedule/batchschedule.h"
 
+#include <memory>
+
 class Schedule {
 private:
   LockTable lock_table;

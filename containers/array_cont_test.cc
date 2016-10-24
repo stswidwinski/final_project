@@ -64,28 +64,6 @@ TEST(ArrayContainerTest) {
   END;
 }
 
-TEST(GetTxnByIdTest) {
-   // prepare the vector and container
-  std::unique_ptr<std::vector<Txn>> v = std::make_unique<std::vector<Txn>>();
-  for (int i = 0; i < 100; i++) {
-    Txn t(i);
-    for (int j = 0; j < i; j++) {
-      t.add_to_write_set(j);
-    }
-    v->push_back(t);
-  }
-
-  ArrayContainer c(std::move(v));
-  for (int i = 99; i >= 0; i--) {
-    EXPECT_EQ(
-      (unsigned int) i,
-      c.get_txn_by_id(i)->get_id());
-  }
-
-  EXPECT_TRUE(nullptr == c.get_txn_by_id(100));
-  END;
-}
-
 int main(int argc, char** argv) {
   ArrayContainerTest();
 }

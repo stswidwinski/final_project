@@ -61,7 +61,7 @@ TEST(BatchScheduleInsert) {
   END; 
 }
 
-TEST(BatchScheduleCreation) {
+TEST(BatchScheduleCreationTest1) {
   // The logical lock-table view of the transactions:
   // 1 <- T1 <- T2
   // 2 <- T1s <- T2s
@@ -72,20 +72,30 @@ TEST(BatchScheduleCreation) {
   // has all the combinations of txns possible. Well, almost
   // since all the packings are just 1 txn each. The next tests checks
   // for handling that. 
+  std::unique_ptr<std::vector<std::unique_ptr<Txn>>> txns = 
+    std::make_unique<std::vector<std::unique_ptr<Txn>>>();
+  txns->push_back(std::make_unique<Txn>(
+    1,
+    std::shared_ptr<std::set<int>>(new std::set<int>({1, 3})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({2, 4}))));
+  txns->push_back(std::make_unique<Txn>(
+    2,
+    std::shared_ptr<std::set<int>>(new std::set<int>({1, 4})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({2, 3, 5}))));
 
   // create a schedule and make sure that it has been put together
   // correctly.
   std::unique_ptr<BatchSchedule> bs = BatchSchedule::build_batch_schedule(std::move(txns));
-  LockTable& lt = bs->get_lock_table();
+  LockTable& lt = bs->lock_table;
 
   // The lock table for lock #1
   // Since the memory used by txns vector goes away after move, we must obtain the addresses
   // of txns within maps by hand using the debug variable.
   LockStage expected_newest_1 = LockStage(
-    std::unordered_set<Txn*>{bs->container->get_txn_by_id(2)},
+    std::unordered_set<std::shared_ptr<Txn>>{bs->txns.find(2)->second},
     LockType::exclusive);
   LockStage expected_current_1 = LockStage(
-    std::unordered_set<Txn*>{bs->container->get_txn_by_id(1)},
+    std::unordered_set<std::shared_ptr<Txn>>{bs->txns.find(1)->second},
     LockType::exclusive,
     std::make_shared<LockStage>(expected_newest_1));
   LockQueue expected_queue_1 = LockQueue(
@@ -95,16 +105,47 @@ TEST(BatchScheduleCreation) {
 
   // The lock table for lock #2
   LockStage expected_current_2 = LockStage(
-    std::unordered_set<Txn*>{
-      bs->container->get_txn_by_id(1), bs->container->get_txn_by_id(2)},
+    std::unordered_set<std::shared_ptr<Txn>>{
+      bs->txns.find(1)->second, bs->txns.find(2)->second},
     LockType::shared);
   LockQueue expected_queue_2 = LockQueue(
-    std::make_shared<LockStage>(expected_current_1));
+    std::make_shared<LockStage>(expected_current_2));
   EXPECT_TRUE(*(lt.lock_table.find(2)->second) == expected_queue_2);
-//
- // TODO: 
-  //    These checks are nearly identical to those from above. Delete repeting
-  //    chunk and abstract that.
+
+  // The lock table for lock #3
+  LockStage expected_newest_3 = LockStage(
+    std::unordered_set<std::shared_ptr<Txn>>{bs->txns.find(2)->second},
+    LockType::shared);
+  LockStage expected_current_3 = LockStage(
+    std::unordered_set<std::shared_ptr<Txn>>{bs->txns.find(1)->second},
+    LockType::exclusive,
+    std::make_shared<LockStage>(expected_newest_3));
+  LockQueue expected_queue_3 = LockQueue(
+    std::make_shared<LockStage>(expected_current_3),
+    std::make_shared<LockStage>(expected_newest_3));
+  EXPECT_TRUE(*(lt.lock_table.find(3)->second) == expected_queue_3);
+
+  // The lock table for lock #4
+  LockStage expected_newest_4 = LockStage(
+    std::unordered_set<std::shared_ptr<Txn>>{bs->txns.find(2)->second},
+    LockType::exclusive);
+  LockStage expected_current_4 = LockStage(
+    std::unordered_set<std::shared_ptr<Txn>>{bs->txns.find(1)->second},
+    LockType::shared,
+    std::make_shared<LockStage>(expected_newest_4));
+  LockQueue expected_queue_4 = LockQueue(
+    std::make_shared<LockStage>(expected_current_4),
+    std::make_shared<LockStage>(expected_newest_4));
+  EXPECT_TRUE(*(lt.lock_table.find(4)->second) == expected_queue_4);
+
+  // The lock table for lock #5
+  LockStage expected_current_5 = LockStage(
+    std::unordered_set<std::shared_ptr<Txn>>{bs->txns.find(2)->second},
+    LockType::shared);
+  LockQueue expected_queue_5 = LockQueue(
+    std::make_shared<LockStage>(expected_current_5));
+  EXPECT_TRUE(*(lt.lock_table.find(5)->second) == expected_queue_5);
+
   END;
 }
 
