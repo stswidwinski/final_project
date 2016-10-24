@@ -149,8 +149,72 @@ TEST(BatchScheduleCreationTest1) {
   END;
 }
 
+TEST(BatchScheduleCreationTest2) {
+  // The logical lock-table view of the transactions:
+  // 1 <- T1s <- T2 <- T3s
+  // 2 <- T2
+  // 3 <- T4
+  // The batch schedule must correspond to it. Tests mostly
+  // for multiple txns in a single packing. 
+  std::unique_ptr<std::vector<std::unique_ptr<Txn>>> txns = 
+    std::make_unique<std::vector<std::unique_ptr<Txn>>>();
+  txns->push_back(std::make_unique<Txn>(
+    1,
+    std::shared_ptr<std::set<int>>(new std::set<int>({})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({1}))));
+  txns->push_back(std::make_unique<Txn>(
+    2,
+    std::shared_ptr<std::set<int>>(new std::set<int>({2, 1})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({}))));
+  txns->push_back(std::make_unique<Txn>(
+    3,
+    std::shared_ptr<std::set<int>>(new std::set<int>({})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({1}))));
+  txns->push_back(std::make_unique<Txn>(
+    4,
+    std::shared_ptr<std::set<int>>(new std::set<int>({3})),
+    std::shared_ptr<std::set<int>>(new std::set<int>({}))));
+
+  // create a schedule and make sure that it has been put together
+  // correctly.
+  std::unique_ptr<BatchSchedule> bs = BatchSchedule::build_batch_schedule(std::move(txns));
+  LockTable& lt = bs->lock_table;
+  // The lock table for lock #1
+  LockStage expected_newest_1 = LockStage(
+    std::unordered_set<std::shared_ptr<Txn>>{bs->txns.find(2)->second},
+    LockType::exclusive);
+  LockStage expected_current_1 = LockStage(
+    std::unordered_set<std::shared_ptr<Txn>>{
+      bs->txns.find(1)->second, bs->txns.find(3)->second},
+    LockType::shared,
+    std::make_shared<LockStage>(expected_newest_1));
+  LockQueue expected_queue_1 = LockQueue(
+    std::make_shared<LockStage>(expected_current_1),
+    std::make_shared<LockStage>(expected_newest_1));
+  EXPECT_TRUE(*(lt.lock_table.find(1)->second) == expected_queue_1);
+
+  // The lock table for lock #2
+  LockStage expected_current_2 = LockStage(
+    std::unordered_set<std::shared_ptr<Txn>>{bs->txns.find(2)->second},
+    LockType::exclusive);
+  LockQueue expected_queue_2 = LockQueue(
+    std::make_shared<LockStage>(expected_current_2));
+  EXPECT_TRUE(*(lt.lock_table.find(2)->second) == expected_queue_2);
+
+  // The lock table for lock #3
+  LockStage expected_current_3 = LockStage(
+    std::unordered_set<std::shared_ptr<Txn>>{bs->txns.find(4)->second},
+    LockType::exclusive);
+  LockQueue expected_queue_3 = LockQueue(
+    std::make_shared<LockStage>(expected_current_3));
+  EXPECT_TRUE(*(lt.lock_table.find(3)->second) == expected_queue_3);
+
+  END;
+}
+
 int main(int argc, char** argv) {
   BatchScheduleInsert();
   BatchScheduleCreationTest1();
+  BatchScheduleCreationTest2();
   return 0;
 }

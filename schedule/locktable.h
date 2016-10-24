@@ -60,6 +60,7 @@ public:
   friend void ScheduleMergingIntoEmptyTest();
   friend void ScheduleMergingIntoExistingTest();
   friend void BatchScheduleCreationTest1();
+  friend void BatchScheduleCreationTest2();
 };
 
 #endif // _LOCK_TABLE_H_

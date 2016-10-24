@@ -32,6 +32,7 @@ public:
   friend void ScheduleMergingIntoEmptyTest();
   friend void ScheduleMergingIntoExistingTest();
   friend void BatchScheduleCreationTest1();
+  friend void BatchScheduleCreationTest2();
 
   friend class Schedule;  
 };
