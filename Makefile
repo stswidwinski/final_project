@@ -61,6 +61,7 @@ include txns/Makefile.inc
 include containers/Makefile.inc
 include packing/Makefile.inc
 include schedule/Makefile.inc
+include simulation/Makefile.inc
 
 test: $(TESTS)
 
