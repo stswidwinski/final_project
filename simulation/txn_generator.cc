@@ -36,7 +36,7 @@ std::vector<int> TxnGenerator::gen_lock_set(
 
   return rand_without_repeats(
       (unsigned int) lock_number,
-      lock_space_size + lock_space_start - 1,
+      lock_space_size,
       lock_space_start);
 }
 
@@ -64,6 +64,10 @@ void TxnGenerator::set_cont_lock_info(
   cont_lock_space_size = clss;
   cont_locks_held_avg = clha;
   cont_locks_held_std_dev = clhsd;
+}
+
+void TxnGenerator::set_write_txn_perc(double wtp) {
+  write_txns_perc = wtp;
 }
 
 std::vector<TxnWrapper> TxnGenerator::gen_uniform() {
@@ -107,7 +111,7 @@ std::vector<TxnWrapper> TxnGenerator::gen_uniform() {
     TxnWrapper wrapper = TxnWrapper(
         Txn(txn_id),
         start_time,
-        (cont_locks.size() + uncont_locks.size()) * lock_time_multiplier);
+        0);
 
     // add to the correct set
     void (Txn::*add_to_set)(const int&) = isWriting ? 
@@ -115,9 +119,12 @@ std::vector<TxnWrapper> TxnGenerator::gen_uniform() {
       (void (Txn::*)(const int&)) &Txn::add_to_read_set;
     for (auto& lock : cont_locks)
       (wrapper.t.*add_to_set)(lock);
-    for (auto& lock : cont_locks)
+    for (auto& lock : uncont_locks)
       (wrapper.t.*add_to_set)(lock);
     
+    wrapper.exec_duration = 
+      (cont_locks.size() + uncont_locks.size()) * lock_time_multiplier;
+
     return wrapper;
   };
 
