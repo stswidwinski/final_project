@@ -1,6 +1,8 @@
 #include "simulation/txn_generator.h"
 #include "utils/testing.h"
 
+#include "simulation/utils.h"
+
 // Very simple test that might probabilistically not work very little of the time.
 // Sure, that's a bug, but this isn't going to be powering NASA rockets.
 TEST(RandWithoutRepeatsTest) {
@@ -31,7 +33,7 @@ TEST(RandWithoutRepeatsTest) {
   END;
 }
 
-TEST(GenUniformTxnsTest) {
+TEST(GenTxnsTest) {
   // this only tests that there are no segfaults and other errors like that.
   // The real test for uniformity etc. are done by visual inspection of
   // resulting distributions and the testing is not rigorous in that sense.
@@ -59,6 +61,12 @@ TEST(GenUniformTxnsTest) {
       tw.t.get_write_set_handle()->size();
     EXPECT_EQ(tw.exec_duration, locks);
   };
+  auto check = [&test_txn](std::vector<TxnWrapper> txns, bool areWrites){
+    EXPECT_EQ(5, txns.size());
+    for (auto& txnWrap : txns) {
+      test_txn(txnWrap, !areWrites, areWrites);
+    }
+  };
 
   // no write txns, only uncont locks, 5 txns.
   g.set_time_period(10);
@@ -68,25 +76,19 @@ TEST(GenUniformTxnsTest) {
   g.set_cont_lock_info(0, 0, 0);
   g.set_write_txn_perc(0.0);
 
-  std::vector<TxnWrapper> txns = g.gen_uniform();
-  EXPECT_EQ(5, txns.size());
-  for (auto& txnWrap : txns) {
-    test_txn(txnWrap, true, false);
-  }
+  check(g.gen_uniform(), false);
+  check(g.gen_bursty(), false); 
 
   // same test, but with write txns
   g.set_write_txn_perc(1.0);
-  txns = g.gen_uniform();
-  EXPECT_EQ(5, txns.size());
-  for (auto& txnWrap : txns) {
-    test_txn(txnWrap, false, true);
-  }
+  check(g.gen_uniform(), true);
+  check(g.gen_uniform(), true);
 
   // and the same with a mix of the two
   g.set_write_txn_perc(0.2);
   unsigned int num_write_txns = 0;
   bool is_write_txn = false;
-  txns = g.gen_uniform();
+  auto txns = g.gen_uniform();
   EXPECT_EQ(5, txns.size());
   for (auto& txnWrap : txns) {
     // this might fail with negligible probability
@@ -96,12 +98,26 @@ TEST(GenUniformTxnsTest) {
     test_txn(txnWrap, !is_write_txn, is_write_txn);
   }
   EXPECT_EQ(1, num_write_txns);
+
+  num_write_txns = 0;
+  is_write_txn = false;
+  txns = g.gen_bursty();
+  EXPECT_EQ(5, txns.size());
+  for (auto& txnWrap : txns) {
+    // this might fail with negligible probability
+    is_write_txn = (txnWrap.t.get_write_set_handle()->size() != 0);
+    num_write_txns += is_write_txn;
+
+    test_txn(txnWrap, !is_write_txn, is_write_txn);
+  }
+  EXPECT_EQ(1, num_write_txns);
+
   END;
 }
 
 int main (int argc, char** argv) {
   RandWithoutRepeatsTest();
-  GenUniformTxnsTest();
+  GenTxnsTest();
   
   return 0;
 }

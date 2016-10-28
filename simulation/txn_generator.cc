@@ -1,5 +1,7 @@
 #include "simulation/txn_generator.h"
 
+#include <limits>
+
 // both ranges are inclusive
 std::vector<int> TxnGenerator::rand_without_repeats(
     unsigned int how_many,
@@ -45,7 +47,7 @@ void TxnGenerator::set_lock_time_mult(unsigned int mult) {
 }
 
 void TxnGenerator::set_time_period(unsigned int tp) {
-  time_period = tp;
+  start_time_distro = std::uniform_int_distribution<int>(0, tp - 1);
 }
 
 void TxnGenerator::set_txn_num(unsigned int tn) {
@@ -53,94 +55,145 @@ void TxnGenerator::set_txn_num(unsigned int tn) {
 }
 
 void TxnGenerator::set_uncont_lock_info(
-    unsigned int ulss, unsigned int slha, unsigned int ulhsd) {
+    unsigned int ulss, unsigned int ulha, unsigned int ulhsd) {
   uncont_lock_space_size = ulss;
-  uncont_locks_held_avg = slha;
-  uncont_locks_held_std_dev = ulhsd;
+  uncont_lock_num_distro = std::normal_distribution<double>(ulha, ulhsd);
 }
 
 void TxnGenerator::set_cont_lock_info(
     unsigned int clss, unsigned int clha, unsigned int clhsd) {
   cont_lock_space_size = clss;
-  cont_locks_held_avg = clha;
-  cont_locks_held_std_dev = clhsd;
+  cont_lock_num_distro = std::normal_distribution<double>(clha, clhsd);
 }
 
 void TxnGenerator::set_write_txn_perc(double wtp) {
   write_txns_perc = wtp;
 }
 
-std::vector<TxnWrapper> TxnGenerator::gen_uniform() {
+void TxnGenerator::set_seed_chance(double seed) {
+  seed_chance = seed;
+}
+
+void TxnGenerator::check_set_fields() {
   // bare minimum checks for initialization of parameters.
   assert(write_txns_perc <= 1.0 && write_txns_perc >= 0.0);
   assert(lock_time_multiplier != 0);
-  assert(time_period != 0);
+  assert(
+      std::numeric_limits<int>::max() != start_time_distro.b());
+  assert(0 == start_time_distro.a());
   assert(txn_number != 0);
-  // first, generate the transactions by type by the beginning time. Add:
-  //    # of locks
-  //    length of txn based on # of locks.
-  std::uniform_int_distribution<int> start_time_distro(0, time_period - 1);
-  std::normal_distribution<double> cont_lock_num_distro(
-      cont_locks_held_avg,
-      cont_locks_held_std_dev);
-  std::normal_distribution<double> uncont_lock_num_distro(
-      uncont_locks_held_avg,
-      uncont_locks_held_std_dev);
+}
+
+TxnWrapper TxnGenerator::gen_wrapper(
+    unsigned int start_time,
+    unsigned int txn_id,
+    bool isWritting) {
+  // contended locks are numbered 0 through contended_lock_space_size - 1
+  auto cont_locks = gen_lock_set(
+      &cont_lock_num_distro, 
+      cont_lock_space_size,
+      0);
+  // contended_lock_space_size + uncontended_lock_space - 1;
+  // uncontended locks are numbered contended_lock_space_size through 
+  auto uncont_locks = gen_lock_set(
+      &uncont_lock_num_distro,
+      uncont_lock_space_size,
+      cont_lock_space_size);
+
+  // create the actual object to return
+  TxnWrapper wrapper = TxnWrapper(
+      Txn(txn_id),
+      start_time,
+      0);
+
+  // add to the correct set
+  void (Txn::*add_to_set)(const int&) = isWritting ?
+    (void (Txn::*)(const int&)) &Txn::add_to_write_set : 
+    (void (Txn::*)(const int&)) &Txn::add_to_read_set;
+  for (auto& lock : cont_locks)
+    (wrapper.t.*add_to_set)(lock);
+  for (auto& lock : uncont_locks)
+    (wrapper.t.*add_to_set)(lock);
+  
+  wrapper.exec_duration = 
+    (cont_locks.size() + uncont_locks.size()) * lock_time_multiplier;
+
+  return wrapper;
+}
+
+std::vector<TxnWrapper> TxnGenerator::gen_uniform() {
+  check_set_fields();
   std::vector<TxnWrapper> result; 
 
-  auto gen_wrapper = [
-      this, 
-      &start_time_distro, 
-      &cont_lock_num_distro,
-      &uncont_lock_num_distro]
-        (bool isWriting, unsigned int txn_id) {
-    unsigned int start_time = start_time_distro(rand_gen);
-    // contended locks are numbered 0 through contended_lock_space_size - 1
-    auto cont_locks = gen_lock_set(
-        &cont_lock_num_distro, 
-        cont_lock_space_size,
-        0);
-    // contended_lock_space_size + uncontended_lock_space - 1;
-    // uncontended locks are numbered contended_lock_space_size through 
-    auto uncont_locks = gen_lock_set(
-        &uncont_lock_num_distro,
-        uncont_lock_space_size,
-        cont_lock_space_size);
-  
-    // create the actual object to return
-    TxnWrapper wrapper = TxnWrapper(
-        Txn(txn_id),
-        start_time,
-        0);
-
-    // add to the correct set
-    void (Txn::*add_to_set)(const int&) = isWriting ? 
-      (void (Txn::*)(const int&)) &Txn::add_to_write_set : 
-      (void (Txn::*)(const int&)) &Txn::add_to_read_set;
-    for (auto& lock : cont_locks)
-      (wrapper.t.*add_to_set)(lock);
-    for (auto& lock : uncont_locks)
-      (wrapper.t.*add_to_set)(lock);
-    
-    wrapper.exec_duration = 
-      (cont_locks.size() + uncont_locks.size()) * lock_time_multiplier;
-
-    return wrapper;
-  };
-
-  // after a lengthy setup, generate the transactions!
   // First write txns and then read txns
   for (unsigned int i = 0; i < (unsigned int) (write_txns_perc * txn_number); i++) {
-    result.push_back(gen_wrapper(true, i));
+    result.push_back(gen_wrapper(start_time_distro(rand_gen), i, true));
   }
 
   unsigned int lacking_txns = txn_number - result.size();
-  unsigned int current_txn_num;
   for (unsigned int i = 0; i < lacking_txns; i++) {
-    current_txn_num = result.size();
-    result.push_back(gen_wrapper(false, current_txn_num));
+    result.push_back(gen_wrapper(start_time_distro(rand_gen), result.size(), false));
   }
 
   return result;
 };
 
+std::vector<TxnWrapper> TxnGenerator::gen_bursty() {
+  check_set_fields();
+  auto txn_wrapper_ordering = [](const TxnWrapper& t1, const TxnWrapper& t2) {
+    return (t1.start_time < t2.start_time);
+  };
+  std::multiset<TxnWrapper, decltype(txn_wrapper_ordering)> result_set(txn_wrapper_ordering); 
+  // find a txn within result that is closest by start time. We use that for the
+  // probability generation.
+  auto find_closest_txn = [&result_set](unsigned int start_time){
+    std::multiset<TxnWrapper>::iterator close_up = 
+      result_set.lower_bound(TxnWrapper(Txn(1), start_time, 1));
+    
+    if (close_up == result_set.end()) {
+      return std::numeric_limits<unsigned int>::max();
+    } else if (close_up == result_set.begin()) {
+      // one-sided!
+      return (unsigned int) std::abs(close_up->start_time - start_time);
+    } else{
+      // two-sided!
+      std::multiset<TxnWrapper>::iterator close_low = close_up;
+      close_low --;
+
+      unsigned int dist1 = std::abs(close_up->start_time - start_time);
+      unsigned int dist2 = std::abs(close_low->start_time - start_time);
+      return (dist1 >= dist2) ? dist2 : dist1;
+    }
+  };
+  // for bursty work-loads we must skew the distribution to make it clustered.
+  auto get_start_time = [this, &find_closest_txn](){
+    unsigned int start_time = 0;
+   // for (unsigned int fails = 0; fails < max_failed_attempt; fails++) {
+   while(true) {  
+      start_time = start_time_distro(rand_gen);
+      double probability = seed_chance + double(linear_factor) / find_closest_txn(start_time);
+      if (uniform_probability(rand_gen) < probability) {
+        return start_time;
+      }
+    }
+  };
+
+  // As in uniform, first write then read
+  for (unsigned int i = 0; i < (unsigned int) (write_txns_perc * txn_number); i++) {
+    // for bursty work loads we must skew the distribution!
+    result_set.insert(gen_wrapper(get_start_time(), i, true));
+  }
+
+  unsigned int lacking_txns = txn_number - result_set.size();
+  for (unsigned int i = 0; i < lacking_txns; i++) {
+    result_set.insert(gen_wrapper(get_start_time(), result_set.size(), false));
+  }
+
+  // convert the result to an actual vector...
+  std::vector<TxnWrapper> result;
+  for (auto& tw : result_set) {
+    result.push_back(std::move(tw));
+  }
+
+  return result;
+}

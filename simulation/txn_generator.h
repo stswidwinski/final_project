@@ -13,16 +13,22 @@ class TxnGenerator {
 private:
   std::default_random_engine rand_gen;
   std::uniform_real_distribution<double> uniform_probability;
+
+  std::uniform_int_distribution<int> start_time_distro;
+  std::normal_distribution<double> cont_lock_num_distro;
+  std::normal_distribution<double> uncont_lock_num_distro;
+
   unsigned int lock_time_multiplier;
-  unsigned int time_period;
   unsigned int txn_number;
   unsigned int uncont_lock_space_size;
-  unsigned int uncont_locks_held_avg;
-  unsigned int uncont_locks_held_std_dev;
   unsigned int cont_lock_space_size;
-  unsigned int cont_locks_held_avg;
-  unsigned int cont_locks_held_std_dev;
   double write_txns_perc;
+
+  // this is the base chance for putting a txn down given no points.
+  double seed_chance;
+  // The probability that a point is put in bursty distribution is 
+  // seed_chance + 1 / (distance from closest point) * linear_factor;
+  unsigned int linear_factor;
 
   std::vector<int> rand_without_repeats(
     unsigned int how_many,
@@ -34,22 +40,30 @@ private:
     unsigned int lock_space_size,
     unsigned int lock_space_start);
 
+  void check_set_fields();
+  TxnWrapper gen_wrapper(unsigned int start_time, unsigned int txn_id, bool isWriting);
 public:
   TxnGenerator() {
     std::random_device rd;
     rand_gen = std::default_random_engine(rd());
     uniform_probability = std::uniform_real_distribution<double>(0.0, 1.0);
+    seed_chance = 0.001;
+    linear_factor = 100;
   }
   // the fields set correpsond to those above in order.
   void set_lock_time_mult(unsigned int mult);
   void set_time_period(unsigned int tp);
   void set_txn_num(unsigned int tn);
-  void set_uncont_lock_info(unsigned int ulss, unsigned int slha, unsigned int ulhsd);
+  // ha - held average, hsd - held standard deviation
+  void set_uncont_lock_info(unsigned int ulss, unsigned int ulha, unsigned int ulhsd);
   void set_cont_lock_info(unsigned int clss, unsigned int clha, unsigned int clhsd);
   void set_write_txn_perc(double wtp);
+  void set_seed_chance(double seed);
 
   // All generation functions return a vector sorted on the begin times of txns
   std::vector<TxnWrapper> gen_uniform(); 
+  // Expected linear time (linear in the # of txns).
+  std::vector<TxnWrapper> gen_bursty();
 
   friend void RandWithoutRepeatsTest();
 };
