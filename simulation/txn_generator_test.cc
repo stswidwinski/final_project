@@ -66,8 +66,9 @@ TEST(GenUniformTxnsTest) {
   g.set_lock_time_mult(1);
   g.set_uncont_lock_info(100, 10, 2);
   g.set_cont_lock_info(0, 0, 0);
+  g.set_write_txn_perc(0.0);
 
-  auto txns = g.gen_uniform();
+  std::vector<TxnWrapper> txns = g.gen_uniform();
   EXPECT_EQ(5, txns.size());
   for (auto& txnWrap : txns) {
     test_txn(txnWrap, true, false);
@@ -95,7 +96,6 @@ TEST(GenUniformTxnsTest) {
     test_txn(txnWrap, !is_write_txn, is_write_txn);
   }
   EXPECT_EQ(1, num_write_txns);
-
   END;
 }
 

@@ -2,6 +2,7 @@
 #define _DEBUG_H_
 
 #include <iostream>
+#include <stdio.h>
 
 #ifdef DEBUG
 #define ASSERT(X)                                  \
@@ -12,9 +13,17 @@
                 << " line " << __LINE__ << "\n";   \
     }                                              \
   } while (0)                                      
+
+
 #else
-#define ASSERT(X)                                  \
-  do { (void)(sizeof(X)); } while (0)              
+#define ASSERT(X)                                  
 #endif // DEBUG
+
+#define DEBUG_CERR(X)                              \
+  do {                                             \
+    std::cerr << __FILE__ << " " << __LINE__ <<    \
+      ": ";                                        \
+    X                                              \
+  } while (0)
 
 #endif // _DEBUG_H_
