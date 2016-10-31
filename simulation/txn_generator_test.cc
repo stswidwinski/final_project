@@ -55,7 +55,7 @@ TEST(GenTxnsTest) {
     else
       EXPECT_UNEQ(0, tw.t.get_read_set_handle()->size());
 
-    EXPECT_TRUE(tw.start_time >= 0 && tw.start_time < 10);
+    EXPECT_TRUE(tw.arrival_time >= 0 && tw.arrival_time < 10);
     unsigned int locks =
       tw.t.get_read_set_handle()->size() +
       tw.t.get_write_set_handle()->size();

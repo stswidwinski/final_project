@@ -14,7 +14,7 @@ private:
   std::default_random_engine rand_gen;
   std::uniform_real_distribution<double> uniform_probability;
 
-  std::uniform_int_distribution<int> start_time_distro;
+  std::uniform_int_distribution<int> arrival_time_distro;
   std::normal_distribution<double> cont_lock_num_distro;
   std::normal_distribution<double> uncont_lock_num_distro;
 
@@ -41,7 +41,7 @@ private:
     unsigned int lock_space_start);
 
   void check_set_fields();
-  TxnWrapper gen_wrapper(unsigned int start_time, unsigned int txn_id, bool isWriting);
+  TxnWrapper gen_wrapper(unsigned int arrival_time, unsigned int txn_id, bool isWriting);
 public:
   TxnGenerator() {
     std::random_device rd;

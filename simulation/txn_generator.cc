@@ -47,7 +47,7 @@ void TxnGenerator::set_lock_time_mult(unsigned int mult) {
 }
 
 void TxnGenerator::set_time_period(unsigned int tp) {
-  start_time_distro = std::uniform_int_distribution<int>(0, tp - 1);
+  arrival_time_distro = std::uniform_int_distribution<int>(0, tp - 1);
 }
 
 void TxnGenerator::set_txn_num(unsigned int tn) {
@@ -79,13 +79,13 @@ void TxnGenerator::check_set_fields() {
   assert(write_txns_perc <= 1.0 && write_txns_perc >= 0.0);
   assert(lock_time_multiplier != 0);
   assert(
-      std::numeric_limits<int>::max() != start_time_distro.b());
-  assert(0 == start_time_distro.a());
+      std::numeric_limits<int>::max() != arrival_time_distro.b());
+  assert(0 == arrival_time_distro.a());
   assert(txn_number != 0);
 }
 
 TxnWrapper TxnGenerator::gen_wrapper(
-    unsigned int start_time,
+    unsigned int arrival_time,
     unsigned int txn_id,
     bool isWritting) {
   // contended locks are numbered 0 through contended_lock_space_size - 1
@@ -103,7 +103,7 @@ TxnWrapper TxnGenerator::gen_wrapper(
   // create the actual object to return
   TxnWrapper wrapper = TxnWrapper(
       Txn(txn_id),
-      start_time,
+      arrival_time,
       0);
 
   // add to the correct set
@@ -127,12 +127,12 @@ std::vector<TxnWrapper> TxnGenerator::gen_uniform() {
 
   // First write txns and then read txns
   for (unsigned int i = 0; i < (unsigned int) (write_txns_perc * txn_number); i++) {
-    result.push_back(gen_wrapper(start_time_distro(rand_gen), i, true));
+    result.push_back(gen_wrapper(arrival_time_distro(rand_gen), i, true));
   }
 
   unsigned int lacking_txns = txn_number - result.size();
   for (unsigned int i = 0; i < lacking_txns; i++) {
-    result.push_back(gen_wrapper(start_time_distro(rand_gen), result.size(), false));
+    result.push_back(gen_wrapper(arrival_time_distro(rand_gen), result.size(), false));
   }
 
   return result;
@@ -141,39 +141,39 @@ std::vector<TxnWrapper> TxnGenerator::gen_uniform() {
 std::vector<TxnWrapper> TxnGenerator::gen_bursty() {
   check_set_fields();
   auto txn_wrapper_ordering = [](const TxnWrapper& t1, const TxnWrapper& t2) {
-    return (t1.start_time < t2.start_time);
+    return (t1.arrival_time < t2.arrival_time);
   };
   std::multiset<TxnWrapper, decltype(txn_wrapper_ordering)> result_set(txn_wrapper_ordering); 
-  // find a txn within result that is closest by start time. We use that for the
+  // find a txn within result that is closest by arrival time. We use that for the
   // probability generation.
-  auto find_closest_txn = [&result_set](unsigned int start_time){
+  auto find_closest_txn = [&result_set](unsigned int arrival_time){
     std::multiset<TxnWrapper>::iterator close_up = 
-      result_set.lower_bound(TxnWrapper(Txn(1), start_time, 1));
+      result_set.lower_bound(TxnWrapper(Txn(1), arrival_time, 1));
     
     if (close_up == result_set.end()) {
       return std::numeric_limits<unsigned int>::max();
     } else if (close_up == result_set.begin()) {
       // one-sided!
-      return (unsigned int) std::abs(close_up->start_time - start_time);
+      return (unsigned int) std::abs(close_up->arrival_time - arrival_time);
     } else{
       // two-sided!
       std::multiset<TxnWrapper>::iterator close_low = close_up;
       close_low --;
 
-      unsigned int dist1 = std::abs(close_up->start_time - start_time);
-      unsigned int dist2 = std::abs(close_low->start_time - start_time);
+      unsigned int dist1 = std::abs(close_up->arrival_time - arrival_time);
+      unsigned int dist2 = std::abs(close_low->arrival_time - arrival_time);
       return (dist1 >= dist2) ? dist2 : dist1;
     }
   };
   // for bursty work-loads we must skew the distribution to make it clustered.
-  auto get_start_time = [this, &find_closest_txn](){
-    unsigned int start_time = 0;
+  auto get_arrival_time = [this, &find_closest_txn](){
+    unsigned int arrival_time = 0;
    // for (unsigned int fails = 0; fails < max_failed_attempt; fails++) {
    while(true) {  
-      start_time = start_time_distro(rand_gen);
-      double probability = seed_chance + double(linear_factor) / find_closest_txn(start_time);
+      arrival_time = arrival_time_distro(rand_gen);
+      double probability = seed_chance + double(linear_factor) / find_closest_txn(arrival_time);
       if (uniform_probability(rand_gen) < probability) {
-        return start_time;
+        return arrival_time;
       }
     }
   };
@@ -181,12 +181,12 @@ std::vector<TxnWrapper> TxnGenerator::gen_bursty() {
   // As in uniform, first write then read
   for (unsigned int i = 0; i < (unsigned int) (write_txns_perc * txn_number); i++) {
     // for bursty work loads we must skew the distribution!
-    result_set.insert(gen_wrapper(get_start_time(), i, true));
+    result_set.insert(gen_wrapper(get_arrival_time(), i, true));
   }
 
   unsigned int lacking_txns = txn_number - result_set.size();
   for (unsigned int i = 0; i < lacking_txns; i++) {
-    result_set.insert(gen_wrapper(get_start_time(), result_set.size(), false));
+    result_set.insert(gen_wrapper(get_arrival_time(), result_set.size(), false));
   }
 
   // convert the result to an actual vector...

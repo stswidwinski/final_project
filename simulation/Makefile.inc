@@ -4,7 +4,7 @@ OBJDIRS += simulation
 UPPERC_DIR := SIMULATION
 LOWERC_DIR := simulation
 
-$(UPPERC_DIR)_SRCS := simulation/txn_generator.cc
+$(UPPERC_DIR)_SRCS := simulation/txn_generator.cc simulation/txn_map.cc
 
 SRC_LINKED_OBJECTS :=
 TEST_LINKED_OBJECTS := obj/txns/txn.o

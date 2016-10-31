@@ -5,12 +5,13 @@
 
 class TxnWrapper {
 public:
-  TxnWrapper(Txn txn, unsigned int st, unsigned int dur):
-    t(txn), start_time(st), exec_duration(dur) {};
+  TxnWrapper(Txn txn, unsigned int at, unsigned int dur):
+    t(txn), arrival_time(at), exec_duration(dur), start_time(0) {};
   
   Txn t;
-  unsigned int start_time;
+  unsigned int arrival_time;
   unsigned int exec_duration;
+  unsigned int start_time;
 
   std::unique_ptr<Txn> get_cpy_of_txn();
 };
