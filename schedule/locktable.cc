@@ -18,6 +18,16 @@ std::shared_ptr<Txn> LockTable::ReadyTxnQueue::get_ready_txn() {
   return t;
 }
 
+std::shared_ptr<Txn> LockTable::ReadyTxnQueue::try_get_ready_txn() {
+  std::unique_lock<std::mutex> lck(mutex_);
+  if (ready_queue.size() == 0)
+    return nullptr;
+
+  std::shared_ptr<Txn> t = ready_queue.front();
+  ready_queue.pop_front();
+  return t;
+}
+
 // NOTE:
 //  We can release the lock after we have obtained the 
 //  queue because the lock table changes ONLY when 
@@ -110,4 +120,8 @@ void LockTable::merge_into_lock_table(LockTable &t) {
 
 std::shared_ptr<Txn> LockTable::get_next_ready_txn() {
   return ready_queue.get_ready_txn();
+}
+
+std::shared_ptr<Txn> LockTable::try_get_next_ready_txn() {
+  return ready_queue.try_get_ready_txn();
 }

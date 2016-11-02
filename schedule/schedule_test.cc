@@ -2,7 +2,7 @@
 #include "utils/testing.h"
 
 TEST(ScheduleMergingIntoEmptyTest) {
-  BatchSchedule bs;
+  std::unique_ptr<BatchSchedule> bs = std::make_unique<BatchSchedule>();
   std::shared_ptr<Txn> test_txn_1 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1, 3})),
@@ -13,11 +13,11 @@ TEST(ScheduleMergingIntoEmptyTest) {
     std::shared_ptr<std::set<int>>(new std::set<int>({1})),
     std::shared_ptr<std::set<int>>(new std::set<int>({2, 3})));
 
-  bs.add_txn(test_txn_1);
-  bs.add_txn(test_txn_2);
+  bs->add_txn(test_txn_1);
+  bs->add_txn(test_txn_2);
  
   Schedule s;
-  s.merge_batch_schedule_in(bs);
+  s.merge_batch_schedule_in(std::move(bs));
   
   EXPECT_EQ(
     1,
@@ -41,7 +41,7 @@ TEST(ScheduleMergingIntoEmptyTest) {
 }
 
 TEST(ScheduleMergingIntoExistingTest) {
-  BatchSchedule bs;
+  std::unique_ptr<BatchSchedule> bs = std::make_unique<BatchSchedule>();
   std::shared_ptr<Txn> test_txn_1 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1, 3})),
@@ -51,15 +51,15 @@ TEST(ScheduleMergingIntoExistingTest) {
     std::shared_ptr<std::set<int>>(new std::set<int>({1})),
     std::shared_ptr<std::set<int>>(new std::set<int>({2, 3})));
 
-  bs.add_txn(test_txn_1);
-  bs.add_txn(test_txn_2);
+  bs->add_txn(test_txn_1);
+  bs->add_txn(test_txn_2);
   
   Schedule s;
-  s.merge_batch_schedule_in(bs);
+  s.merge_batch_schedule_in(std::move(bs));
 
   // Create a second batch schedule with conflicting 
   // and non-conflicting elements.
-  BatchSchedule bs1;
+  std::unique_ptr<BatchSchedule> bs1 = std::make_unique<BatchSchedule>();
   // should be ready inmediately.
   std::shared_ptr<Txn> test_txn_3 = std::make_shared<Txn>(
     0,
@@ -71,10 +71,10 @@ TEST(ScheduleMergingIntoExistingTest) {
     std::shared_ptr<std::set<int>>(new std::set<int>({1})),
     std::shared_ptr<std::set<int>>(new std::set<int>({2, 3})));
  
-  bs1.add_txn(test_txn_3);
-  bs1.add_txn(test_txn_4);
+  bs1->add_txn(test_txn_3);
+  bs1->add_txn(test_txn_4);
 
-  s.merge_batch_schedule_in(bs1);
+  s.merge_batch_schedule_in(std::move(bs1));
 
   EXPECT_EQ(
     2,

@@ -23,6 +23,8 @@ private:
     void add_txn(std::shared_ptr<Txn> t);
     // blocks until a txn is available
     std::shared_ptr<Txn> get_ready_txn();
+    // non-blocking version. Returns nullptr when nothing is left.
+    std::shared_ptr<Txn> try_get_ready_txn();
   };
 
   // returns the pointer to the lock queue corresponding to
@@ -35,6 +37,7 @@ private:
 
 public:
   std::shared_ptr<Txn> get_next_ready_txn();
+  std::shared_ptr<Txn> try_get_next_ready_txn();
   // Inserts lock request into the lock table without granting locks. 
   // Used by the batch schedule only.
   void insert_lock_request(std::shared_ptr<Txn> t, int lck, LockType type);
