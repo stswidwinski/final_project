@@ -2,6 +2,7 @@
 #define _TXN_MAP_H_
 
 #include "simulation/txn_sim_wrapper.h"
+#include "simulation/txn_generator.h"
 
 #include <algorithm>
 #include <cassert>
@@ -30,13 +31,18 @@ public:
     }
   };
 
+
   double get_average_completion_time();
+  double get_std_deviation_completion_time();
   // lower_arrival_time and upper_arrival_time are inclusive.
-  std::vector<std::unique_ptr<Txn>> get_txns_between(
+  std::vector<std::unique_ptr<Txn>> get_cpy_of_txns_between(
       unsigned int lower_arrival_time, unsigned int upper_arrival_time);
+  unsigned int get_completion_time(unsigned int txn_id);
   
   void set_start_time(unsigned int txn_id, unsigned int time);
   void reset_start_time();
+
+  friend void write_txn_load(std::string, std::string, TxnGeneratorParams, TxnMap);
 };
 
 #endif // _TXN_MAP_H_

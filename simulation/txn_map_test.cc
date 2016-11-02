@@ -28,7 +28,7 @@ TEST(AvgCompletionTimeTest) {
 
 TEST(GetTxnsBtwTest) {
   TxnMap m(get_sample_test_load());
-  std::vector<std::unique_ptr<Txn>> res = m.get_txns_between(2,3);
+  std::vector<std::unique_ptr<Txn>> res = m.get_cpy_of_txns_between(2,3);
   EXPECT_EQ(2, res.size());
   for (unsigned int i = 1; i < 3; i++) 
     EXPECT_EQ(i, res[i-1]->get_id());
@@ -37,7 +37,7 @@ TEST(GetTxnsBtwTest) {
   load2.push_back(TxnWrapper(Txn(0), 2, 1));
   load2.push_back(TxnWrapper(Txn(1), 2, 2));
   TxnMap m2(load2);
-  res = m2.get_txns_between(2, 2);
+  res = m2.get_cpy_of_txns_between(2, 2);
   EXPECT_EQ(2, res.size());
   for (unsigned int i = 0; i < 2; i++)
     EXPECT_EQ(i, res[i]->get_id());
