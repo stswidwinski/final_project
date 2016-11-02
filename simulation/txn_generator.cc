@@ -74,6 +74,27 @@ void TxnGenerator::set_seed_chance(double seed) {
   seed_chance = seed;
 }
 
+void TxnGenerator::set_linear_factor(unsigned int lf) {
+  linear_factor = lf;
+}
+
+void TxnGenerator::set_params(TxnGeneratorParams params) {
+  set_lock_time_mult(params.lock_time_multiplier);
+  set_txn_num(params.txn_number);
+  set_time_period(params.time_period);
+  set_uncont_lock_info(
+      params.uncont_lock.lock_space,
+      params.uncont_lock.avg_locks_held,
+      params.uncont_lock.std_dist_of_locks_held);
+  set_cont_lock_info(
+      params.cont_lock.lock_space,
+      params.cont_lock.avg_locks_held,
+      params.cont_lock.std_dist_of_locks_held);
+  set_write_txn_perc(params.write_txns_perc);
+  set_seed_chance(params.seed_chance);
+  set_linear_factor(params.linear_factor);
+}
+
 void TxnGenerator::check_set_fields() {
   // bare minimum checks for initialization of parameters.
   assert(write_txns_perc <= 1.0 && write_txns_perc >= 0.0);
@@ -146,7 +167,7 @@ std::vector<TxnWrapper> TxnGenerator::gen_bursty() {
   std::multiset<TxnWrapper, decltype(txn_wrapper_ordering)> result_set(txn_wrapper_ordering); 
   // find a txn within result that is closest by arrival time. We use that for the
   // probability generation.
-  auto find_closest_txn = [&result_set](unsigned int arrival_time){
+  auto find_closest_txn_dist = [&result_set](unsigned int arrival_time){
     std::multiset<TxnWrapper>::iterator close_up = 
       result_set.lower_bound(TxnWrapper(Txn(1), arrival_time, 1));
     
@@ -155,23 +176,24 @@ std::vector<TxnWrapper> TxnGenerator::gen_bursty() {
     } else if (close_up == result_set.begin()) {
       // one-sided!
       return (unsigned int) std::abs(close_up->arrival_time - arrival_time);
-    } else{
+    } else {
       // two-sided!
       std::multiset<TxnWrapper>::iterator close_low = close_up;
       close_low --;
 
       unsigned int dist1 = std::abs(close_up->arrival_time - arrival_time);
-      unsigned int dist2 = std::abs(close_low->arrival_time - arrival_time);
+      unsigned int dist2 = std::abs(arrival_time - close_low->arrival_time);
+
       return (dist1 >= dist2) ? dist2 : dist1;
     }
   };
   // for bursty work-loads we must skew the distribution to make it clustered.
-  auto get_arrival_time = [this, &find_closest_txn](){
+  auto get_arrival_time = [this, &find_closest_txn_dist](){
     unsigned int arrival_time = 0;
    // for (unsigned int fails = 0; fails < max_failed_attempt; fails++) {
    while(true) {  
       arrival_time = arrival_time_distro(rand_gen);
-      double probability = seed_chance + double(linear_factor) / find_closest_txn(arrival_time);
+      double probability = seed_chance + double(linear_factor) / find_closest_txn_dist(arrival_time);
       if (uniform_probability(rand_gen) < probability) {
         return arrival_time;
       }
