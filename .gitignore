@@ -9,3 +9,6 @@ writeup/
 tags
 scripts/menv*
 *__pycache__*
+data/test/*
+data/raw_data/*
+data/proc_data/*
