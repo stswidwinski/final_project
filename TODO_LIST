@@ -10,4 +10,4 @@
 10. Decouple data dump for bursty and uniform workloads for completion time etc.
 11. Refactor the graph creating scripts... Right now its 3 ways for 3 different graphs
 12. Add graphs for loc contention experiments
-13.  
+13. Sequential -> Serial  
