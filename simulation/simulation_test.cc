@@ -18,7 +18,6 @@ void run_simulation_for_model(TxnMap& load, Model model);
 int main(int argc, char** argv) {
   args = parse_arguments(argc, argv); 
 
-  write_descr_header(args.dump_path_root);
   TxnGenerator txn_gen(args.txn_gen_params);
   // run 10 of each! we will average out afterwards.
   for (unsigned int i = 0; i < args.reps; i ++) {
@@ -26,7 +25,7 @@ int main(int argc, char** argv) {
     auto uniform_load = TxnMap(txn_gen.gen_uniform()); 
     
     if (args.requested_data.find(Data::load) != args.requested_data.end())
-      write_txn_load(args.dump_path_root, "uniform", args.txn_gen_params, uniform_load);
+      write_txn_load(args.dump_path_root, "uniform", uniform_load);
 
     for (auto& model : args.requested_models) {
       std::cerr << "Uniform trial " << i + 1 << " Out of " << args.reps <<": running model " << (int) model + 1 << " out of " << args.requested_models.size() << "\r";
@@ -41,7 +40,7 @@ int main(int argc, char** argv) {
     auto bursty_load = TxnMap(txn_gen.gen_bursty());
     
     if (args.requested_data.find(Data::load) != args.requested_data.end())
-      write_txn_load(args.dump_path_root, "bursty", args.txn_gen_params, bursty_load);
+      write_txn_load(args.dump_path_root, "bursty", bursty_load);
     
     for (auto& model : args.requested_models) {
       std::cerr << "Bursty trial " << i + 1 << " Out of " << args.reps << ": running model " << (int) model + 1 << " out of " << args.requested_models.size() << "\r";
@@ -65,6 +64,7 @@ void run_simulation_for_model(TxnMap& load, Model model) {
   InflightTxnMap in_flight_txns;
   unsigned int current_time = 0;
   unsigned int batch_length = args.batch_length;
+  unsigned int txns_processed = 0;
   Schedule sched;
 
   if (model == Model::sequential)
@@ -75,8 +75,10 @@ void run_simulation_for_model(TxnMap& load, Model model) {
   
   std::vector<unsigned int> in_flight_txn_in_time;
 
-  while (current_time <= args.time_period ||
-      in_flight_txns.size() != 0) {
+  while (
+      txns_processed < args.txn_gen_params.txn_number &&
+      (current_time <= args.time_period ||
+      in_flight_txns.size() != 0)) {
 
     in_flight_txn_in_time.push_back(in_flight_txns.size());
     // first, get all the finished txns and finalize them 
@@ -85,6 +87,7 @@ void run_simulation_for_model(TxnMap& load, Model model) {
         curr_it != finished_txns_range.second; 
         curr_it++) {
       sched.finalize_txn((*curr_it).second);
+      txns_processed ++;
     }
     in_flight_txns.erase(current_time);
 
@@ -118,17 +121,15 @@ void run_simulation_for_model(TxnMap& load, Model model) {
     write_avg_std_dev(
         args.dump_path_root, 
         model, 
-        args.txn_gen_params, 
         load, 
         batch_length,
         current_time);
   }
 
   if (args.requested_data.find(Data::locks_in_time) != args.requested_data.end()) {
-    write_locks_in_time(
+    write_txns_in_time(
       args.dump_path_root,
       model,
-      args.txn_gen_params,
       in_flight_txn_in_time,
       batch_length);
   }

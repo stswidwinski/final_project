@@ -2,7 +2,6 @@
 #define _TXN_MAP_H_
 
 #include "simulation/txn_sim_wrapper.h"
-#include "simulation/txn_generator.h"
 
 #include <algorithm>
 #include <cassert>
@@ -42,7 +41,7 @@ public:
   void set_start_time(unsigned int txn_id, unsigned int time);
   void reset_start_time();
 
-  friend void write_txn_load(std::string, std::string, TxnGeneratorParams, TxnMap);
+  friend void write_txn_load(std::string, std::string, TxnMap);
 };
 
 #endif // _TXN_MAP_H_

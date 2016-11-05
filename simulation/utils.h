@@ -29,63 +29,9 @@ std::string append_path(std::string base, std::string path) {
   return base + path;
 }
 
-std::string get_descr_file_name(std::string dump_path) {
-  return append_path(dump_path, "descr");
-}
-
-void write_descr_header(std::string dump_path) {
-  std::ofstream descr_file;
-  try {
-    descr_file.open(get_descr_file_name(dump_path), std::ios::out | std::ios::app);
-  } catch (const std::ofstream::failure& e) {
-    DEBUG_CERR(std::cerr << e.what() << ". ERR CODE:" << e.code() << std::endl;);
-  }
-
-  if (descr_file.tellp() == 0) {
-    // header containing: load building info, model_type, data_type and path to the result file
-    descr_file << "ltm,tn,tp,ulls,ulavg,ulstd,clls,clavg,clstd,wtxn,sc,lf," 
-               << "model_type,data_type,path_to_result\n";
-  }
-
-  descr_file.close();
-}
-
-void update_descr_file(
-    std::string dump_path,
-    TxnGeneratorParams param,
-    std::string model,
-    std::string data_type,
-    std::string path_to_result) {
-  std::ofstream descr_file;
-  try {
-    descr_file.open(get_descr_file_name(dump_path), std::ios::out | std::ios::app);
-  } catch (const std::ofstream::failure& e) {
-    DEBUG_CERR(std::cerr << e.what() << ". ERR CODE:" << e.code() << std::endl;);
-  }
-
-  descr_file << param.lock_time_multiplier << "," 
-             << param.txn_number << ","
-             << param.time_period << ","
-             << param.uncont_lock.lock_space << ","
-             << param.uncont_lock.avg_locks_held << ","
-             << param.uncont_lock.std_dist_of_locks_held << ","
-             << param.cont_lock.lock_space << ","
-             << param.cont_lock.avg_locks_held << ","
-             << param.cont_lock.std_dist_of_locks_held << ","
-             << param.write_txns_perc << ","
-             << param.seed_chance << ","
-             << param.linear_factor << ","
-             << model << ","
-             << data_type << ","
-             << path_to_result << "\n";
-
-  descr_file.close();
-}
-
 void write_txn_load(
     std::string dump_path,
     std::string load_type,
-    TxnGeneratorParams params,
     TxnMap txn_load) {
   static int load_num = 0;
   std::ofstream dump_file;
@@ -101,26 +47,17 @@ void write_txn_load(
     DEBUG_CERR(std::cerr << e.what() << ". ERR CODE:" << e.code() << std::endl;);
   }
 
-  dump_file << "start_time,duration\n";
+  dump_file << "arrival_time,duration\n";
   for (const TxnWrapper& tw : txn_load.txns) {
     dump_file << tw.arrival_time << "," << tw.exec_duration << "\n";
   }
 
   dump_file.close();
-
-  // update the descr file.
-  update_descr_file(
-      dump_path,
-      params,
-      "n/a",
-      "load",
-      path);
 }
 
 void write_avg_std_dev(
     std::string dump_path, 
     Model model, 
-    TxnGeneratorParams params, 
     TxnMap load,
     unsigned int batch_length,
     unsigned int total_time) {
@@ -135,13 +72,6 @@ void write_avg_std_dev(
   if (dump_file.tellp() == 0) {
     // write the header
     dump_file << "average_completion_time,standard_deviation,batch_length,total_time\n";
-    // update the descr file.
-    update_descr_file(
-      dump_path,
-      params,
-      model_to_string(model),
-      "avg_std",
-      path);
   }
 
   dump_file << load.get_average_completion_time() << "," 
@@ -152,10 +82,9 @@ void write_avg_std_dev(
   dump_file.close();
 }
 
-void write_locks_in_time(
+void write_txns_in_time(
     std::string dump_path, 
     Model model, 
-    TxnGeneratorParams params, 
     std::vector<unsigned int> locks_in_time,
     unsigned int batch_length) {
   static unsigned int counters[(int) Model::count] = {0};
@@ -163,7 +92,7 @@ void write_locks_in_time(
   
   std::string path = append_path(
       dump_path, 
-      model_to_string(model) + "_locks_in_time_" + std::to_string(counters[(int) model]));
+      model_to_string(model) + "_txns_in_time_" + std::to_string(counters[(int) model]));
   counters[(int) model] ++;
 
   try {
@@ -174,14 +103,7 @@ void write_locks_in_time(
   
   if (dump_file.tellp() == 0) {
     // write the header
-    dump_file << "number_of_locks,time\n";
-    // update the descr file.
-    update_descr_file(
-      dump_path,
-      params,
-      model_to_string(model),
-      "locks_in_time",
-      path);
+    dump_file << "number_of_txns,time\n";
   }
 
   for (unsigned int i = 0; i < locks_in_time.size(); i++)
