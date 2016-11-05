@@ -1,19 +1,13 @@
-1. Create a simulation framework with tests
-  a. Create a function to actually make a schedule from a stream of txns. 
-    NOTE: for now we assume no knowledge of the locks being held when building the next batch. 
-  b. Decide on the tests
-  c. Compare between:
-    1) Real-time graph building (v. short batches)
-    2) Global graph building (single batch)
-    3) Medium (1 or 2 sizes) batch sizes
-
-    NOTE: 
-        The metric we look at is the latency of the system and the total time necessary to complete.
-    
-    Assumptions:
-        - Txns come in uniformtly at random times. The time necessary to complete a txn is also uniform and random from a range and does not depend on the # of locks requested.
-        - # of locks requested is random 
-        - Contention will be controlled for
-2. Tests within the simulation framework
-3. Addition of different sorting methods for txns within the simulation framework. Inclusion of those for tests.
-4. 
+1. Allow for recording of transactional length within workloads
+2. Add constraints on creation of further batches (prioritize txns that are "free to execute" at arrival)
+3. Sort the return value of gen_uniform before returning (or change the description.... it's actually not strictly necessary I think)
+4. Add execution threads constraint (not only \infty)
+5. BatchSchedule::build_schedule does not need to return a unique pointer... change that
+6. Enable different weighting functions in batch creation
+7. Enable multi-threaded simulations (each simulation is still single-threaded but the experiments are separated across cores)
+8. Write dependency file for python scripts
+9. Change the makefile so that simulation is no longer treated as a test ...
+10. Decouple data dump for bursty and uniform workloads for completion time etc.
+11. Refactor the graph creating scripts... Right now its 3 ways for 3 different graphs
+12. Add graphs for loc contention experiments
+13.  
