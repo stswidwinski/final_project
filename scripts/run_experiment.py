@@ -1,6 +1,8 @@
 import argparse
 import subprocess
 import os
+import script_utils.dir_utils as dir_utils
+import script_utils.description_file as description_file
 from script_utils.dir_utils import *
 from enum import Enum
 import load_graphs
@@ -36,6 +38,7 @@ add_argument('-bsc', "Bursty transaction generation seed chance (the smaller, th
 add_argument('-blf', "Bursty linear factor. The higher, the less bursty")
 add_argument('-bl', "Batch length", True)
 add_argument('-en', "Experiment name")
+parser.add_argument('-reps', help="Repetitions of each measurement", required=False, default="3")
 parser.add_argument('-mods', help="Model names", nargs="+", required=True, choices=["sequential", "real_time", "batched"]);
 parser.add_argument('-data', help="Data to gather", nargs="+", required=True, choices=["load", "avg_proc_time", "std_dev_proc_time", "locks_in_time"]);
 args = parser.parse_args()
@@ -52,6 +55,9 @@ print("Created directory " + raw_data_dir + " for output")
 proc_data_dir = os.path.join(get_proc_data_dir(), args.en)
 create_dir(proc_data_dir)
 print("Created directory " + proc_data_dir + " for graphs")
+
+# Write txn description file
+description_file.write(raw_data_dir, args)
 
 # run all the specified experiments...
 #
@@ -122,6 +128,7 @@ for i in range(0, len(iterate_over)):
         cmd.append(args.bl[i])
 
     cmd.append(raw_file_path)
+    cmd.append(args.reps)
     for a in args.mods:
         cmd.append(a)
     
