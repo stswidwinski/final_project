@@ -1,5 +1,6 @@
 import os
 import sys
+import script_utils.print as p
 
 def write_helper(file, name, args, delim="\t"):
     if len(name) > 0:
@@ -10,6 +11,7 @@ def write_helper(file, name, args, delim="\t"):
     file.write("\n")
 
 def write(path, args):
+    p.put("Writing description file ")
     file_path = os.path.join(path, "description")
     file = open(file_path, "w")
 
@@ -37,3 +39,4 @@ def write(path, args):
     file.write("\nCommand To execute\n\n");
     write_helper(file, "", sys.argv, " ");
     file.close()
+    p.put(" [ OK ]\n", color="green")

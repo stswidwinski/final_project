@@ -1,4 +1,5 @@
 import os
+import script_utils.print as p
 
 def get_top_proj_level_dir():
     path = os.path.dirname(os.path.realpath(__file__))
@@ -17,6 +18,7 @@ def create_dir(directory):
         os.makedirs(directory)
         return
 
+    p.put("[ FAIL ]\n", "red")
     raise NameError('Directory ' + directory + 'already exists!')
 
 ## The general structure of the files for an experiment is:
