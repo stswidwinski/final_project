@@ -12,43 +12,76 @@
 #include <unordered_map>
 
 SimulationArgs args;
+enum class Workload { uniform, bursty };
+
+std::string workload_to_string(Workload load) {
+  switch(load) {
+    case Workload::uniform:
+      return "uniform";
+    case Workload::bursty:
+      return "bursty";
+    default:
+      return "error";
+  }
+}
 
 void run_simulation_for_model(TxnMap& load, Model model);
 
 int main(int argc, char** argv) {
   args = parse_arguments(argc, argv); 
-
   TxnGenerator txn_gen(args.txn_gen_params);
-  // run 10 of each! we will average out afterwards.
-  for (unsigned int i = 0; i < args.reps; i ++) {
-    std::cerr << "Uniform trial " << i + 1 << " Out of " << args.reps << ": prepping load\r";
-    auto uniform_load = TxnMap(txn_gen.gen_uniform()); 
-    
-    if (args.requested_data.find(Data::load) != args.requested_data.end())
-      write_txn_load(args.dump_path_root, "uniform", uniform_load);
+  auto run = [&txn_gen](Workload load){
+    for (unsigned int i = 0; i < args.reps; i ++) {
+      begin_print_section();
+  
+      auto trial_string = "Trial " + std::to_string(i+1) +\
+                          " Out Of " + std::to_string(args.reps);
+      put(trial_string + "\n");
+  
+      put("Prepping load");
+      auto work_load = load == Workload::uniform ? 
+        TxnMap(txn_gen.gen_uniform()) :
+        TxnMap(txn_gen.gen_bursty()); 
+      put(" [ OK ]\n", "green");
 
-    for (auto& model : args.requested_models) {
-      std::cerr << "Uniform trial " << i + 1 << " Out of " << args.reps <<": running model " << (int) model + 1 << " out of " << args.requested_models.size() << "\r";
-      run_simulation_for_model(uniform_load, model);
-    }    
-  }
+      if (args.requested_data.find(Data::load) != args.requested_data.end()) {
+        put("Dumping workload data ");
+        write_txn_load(args.dump_path_root, workload_to_string(load), work_load);
+        put(" [ OK ]\n", "green");
+      }
 
-  std::cerr << std::endl;
-  // run experiments for the bursty distribution
-  for (unsigned int i = 0; i < args.reps; i++) {
-    std::cerr << "Bursty trial " << i + 1 << " out of " << args.reps << ": prepping load\r";
-    auto bursty_load = TxnMap(txn_gen.gen_bursty());
-    
-    if (args.requested_data.find(Data::load) != args.requested_data.end())
-      write_txn_load(args.dump_path_root, "bursty", bursty_load);
-    
-    for (auto& model : args.requested_models) {
-      std::cerr << "Bursty trial " << i + 1 << " Out of " << args.reps << ": running model " << (int) model + 1 << " out of " << args.requested_models.size() << "\r";
-      run_simulation_for_model(bursty_load, model);
-    } 
-  }
-  std::cerr << std::endl;
+      for (auto& model : args.requested_models) {
+        auto model_string = "Running " + model_to_string(model) + " model simulation";
+        begin_print_section();
+        put(model_string);
+        run_simulation_for_model(work_load, model);
+        wipe_section();
+        put(model_string);
+        put(" [ OK ]\n", "green");
+      }
 
+      wipe_section();
+      put(trial_string);
+      put(" [ OK ]\n", "green");
+    }
+  };
+
+  begin_print_section(); 
+  put("Beginning experiments!\n");
+
+  begin_print_section();
+  put("Uniform Workload Trials\n");
+  run (Workload::uniform);
+  wipe_section();
+  put("Uniform Workload Trials");
+  put(" [ OK ]\n", "green");
+  
+  begin_print_section();
+  put("Bursty Workload Trials\n");
+  run (Workload::bursty);
+  wipe_section();
+
+  wipe_section();
   return 0;
 }
 
@@ -118,19 +151,23 @@ void run_simulation_for_model(TxnMap& load, Model model) {
   // simulation done. Dump the results
   if (args.requested_data.find(Data::avg_proc_time) != args.requested_data.end() || 
       args.requested_data.find(Data::std_dev_proc_time) != args.requested_data.end()) {
+    put("Dump avg proc time and std dev proc time");
     write_avg_std_dev(
         args.dump_path_root, 
         model, 
         load, 
         batch_length,
         current_time);
+    put(" [ OK ]\n", "green");
   }
 
   if (args.requested_data.find(Data::locks_in_time) != args.requested_data.end()) {
+    put("Dump txns in time");
     write_txns_in_time(
       args.dump_path_root,
       model,
       in_flight_txn_in_time,
       batch_length);
+    put(" [ OK ]\n", "green");
   }
 }

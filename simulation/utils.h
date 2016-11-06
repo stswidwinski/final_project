@@ -8,6 +8,56 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <unordered_map>
+
+const std::unordered_map<std::string, std::string> colors = {
+  {"red", "\033[1;33;40m "},
+  {"green", "\033[1;32;40m "},
+  {"white", "\033[1;37;40m "}
+};
+
+static std::vector<unsigned int> section_lines;
+
+void begin_print_section() {
+  section_lines.push_back(0);
+}
+
+void indent() {
+  std::cout << "\r";
+  for (unsigned int i = 0; i < section_lines.size(); i++) {
+    std::cout << "\t";
+  }
+  std::cout << std::flush;
+}
+
+void wipe_section() {
+  unsigned int lines = section_lines.back();
+  while (lines != 0) {
+    // erase current line
+    std::cout << "\033[2K";
+    // move up
+    std::cout << "\033[A";
+    std::cout << "\033[2K";
+    lines --;
+  }
+  
+  section_lines.pop_back();
+  indent();
+}
+
+void put(std::string text, std::string color="white") {
+  auto color_string = colors.find(color);
+  if (color_string == colors.end())
+    std::cerr << "Could not put from utils...\n";
+
+  std::cout << color_string->second << text << "\033[0m";
+  if (text.find('\n') != std::string::npos) {
+    section_lines.back() ++;
+    indent();
+  }
+  
+  std::cout << std::flush;
+}
 
 std::string model_to_string(Model model) {
   switch(model) {
