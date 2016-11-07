@@ -11,6 +11,8 @@ import load_graphs
 import batch_length_graphs
 import lock_data_graphs
 
+import time
+
 def run_experiment():
     # Initialize parser and get arguments
     parser = argparse.ArgumentParser(
@@ -125,19 +127,28 @@ def run_experiment():
     # Create the graphs for all the experiments. Again, this depends on the
     # experiment conducted...
     if 'load' in args.data:
-        p.put("Creating load graphs")
+        p.put("Creating load graphs\n")
+        p.begin_print_section()
         load_graphs.create(raw_data_dir, proc_data_dir, 1000)
+        p.wipe_section()
+        p.put("Creating load graphs")
         p.put(" [ OK ]\n", color = 'green')
 
     if experiment_type == Experiment.batch_length:
         if 'avg_proc_time' in args.data or 'std_dev_proc_time' in args.data:
             p.put("Creating avg proc time graphs")
+            p.begin_print_section()
             batch_length_graphs.create(raw_data_dir, proc_data_dir)    
-            p.put(" [ OK ]\n", color = 'green')
+            p.wipe_section()
+            p.put("Creating avg proc time graphs")
+            p.put(" [ OK ]\n", color = "green")
         if 'locks_in_time' in args.data:
-            p.put("Creating txns in time graphs");
+            p.put("Creating txns in time graphs")
+            p.begin_print_section()
             lock_data_graphs.create(raw_data_dir, proc_data_dir) 
-            p.put(" [ OK ]\n", color = 'green')
+            p.wipe_section()
+            p.put("Creating txns in time graphs")
+            p.put(" [ OK ]\n", color = "green")
 
 if __name__ == '__main__':
     run_experiment()

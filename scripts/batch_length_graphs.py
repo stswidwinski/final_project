@@ -3,6 +3,7 @@ import matplotlib.cm as cm
 import os
 import pandas
 from script_utils.dir_utils import *
+import script_utils.print as p
 import numpy as np
 
 def aggregate_data(path_to_raw_data):
@@ -24,28 +25,11 @@ def aggregate_data(path_to_raw_data):
             })
     # aggregate the data...
     for meas_data in rel_data:
+        p.put(meas_data['meas_name']);
         meas_dir = os.path.join(path_to_raw_data, meas_data['meas_name']);
         batch_length = int(meas_dir[meas_dir.rfind('_') + 1 : ])
 
         for data_file_path in meas_data['meas_data_files_paths']:
-#            if data_file_path.rfind('_batched_') != -1:
-#                batched_comp_times = pandas.read_csv(data_file_path);
-#                comp_time_data = comp_time_data.append(
-#                        {
-#                            'batch_length': batch_length, 
-#                            'avg_comp_time': np.mean(batched_comp_times['total_time']),
-#                            'model': "batched",
-#                        }, ignore_index = True)
-#                avg_txn_comp_data = avg_txn_comp_data.append(
-#                        {
-#                            'batch_length': batch_length,
-#                            'avg_txns_comp_time': np.mean(
-#                                batched_comp_times['average_completion_time']),
-#                            'avg_std_dev': np.mean(
-#                                batched_comp_times['standard_deviation']),
-#                            'model': "batched",
-#                        }, ignore_index = True)
-#            else:
             model = data_file_path[
                     data_file_path.rfind('/') + 1 : 
                     data_file_path.rfind('_avg_std')]
@@ -63,11 +47,16 @@ def aggregate_data(path_to_raw_data):
                     'avg_std_dev': np.mean(data['standard_deviation']),
                     'model': model
                 }, ignore_index = True)
+        p.put(" [ OK ]\n", color="green")
 
     return comp_time_data, avg_txn_comp_data
             
 def create(path_to_raw_data, path_to_proc_data):
+    p.put("Aggregating data")
+    p.begin_print_section()
     comp_time, avg_txn = aggregate_data(path_to_raw_data)
+    p.wipe_section()
+    p.put(" [ OK]\n", color="green")
 
     # Create the completion time graphs first
     ax = plt.figure().add_subplot(111)
