@@ -11,3 +11,18 @@
 11. Refactor the graph creating scripts... Right now its 3 ways for 3 different graphs
 12. Add graphs for loc contention experiments
 13. Sequential -> Serial  
+14. CDF -> PDF
+
+
+
+Let's say we are saving the history of the whole lock table.
+
+
+1 -> ...
+2 -> ...
+3 -> ...
+4 ->
+
+We can recreate the lock table. So all we have to do while the thing is running is to memorize the first pointer. Then, on a print we will create a hashtable of 
+
+txn -> things that directly depend. 

@@ -10,6 +10,8 @@ from enum import Enum
 import load_graphs
 import batch_length_graphs
 import lock_data_graphs
+import gant_graphs
+import dep_graphs
 
 import time
 
@@ -52,6 +54,7 @@ def run_experiment():
         write_txn_perc = 2
         contested = 3
         uncontested = 4
+        txn_num = 5
 
     experiment_type = ''
     iterate_over = ''
@@ -64,6 +67,9 @@ def run_experiment():
     elif (len(args.wtxn) > 1):
         experiment_type = Experiment.write_txn_perc
         iterate_over = args.wtxn
+    elif (len(args.tn) > 1):
+        experiment_type = Experiment.txn_num
+        iterate_over = args.tn
     else:
         # default
         experiment_type = Experiment.batch_length
@@ -79,7 +85,10 @@ def run_experiment():
         cmd = [os.path.join(get_top_proj_level_dir(), "bin/simulation/simulation_test")]
         cmd.append(args.ltm)
         cmd.append(args.tp)
-        cmd.append(args.tn)
+        if experiment_type != Experiment.txn_num:
+            cmd.append(args.tn[0])
+        else:
+            cmd.append(args.tn[i])
         
         cmd.append(args.ulss)
         if experiment_type != Experiment.uncontested:
@@ -118,7 +127,8 @@ def run_experiment():
         cmd_string = ""
         for a in cmd:
             cmd_string += " " + a
-        
+       
+        #p.put(cmd_string + "\n");
         p.put("Running " + experiment_type.name + " experiment " + str(i + 1) + " out of " + str(len(iterate_over)))
         subprocess.call(cmd)
     p.put("Running experiments")
@@ -149,6 +159,26 @@ def run_experiment():
             p.wipe_section()
             p.put("Creating txns in time graphs")
             p.put(" [ OK ]\n", color = "green")
+
+    if 'txn_gant' in args.data:
+        p.put("Creating gant graphs\n")
+        p.begin_print_section()
+        batch_length = 0
+        if (experiment_type != Experiment.batch_length):
+            batch_length = int(args.bl[0])
+        gant_graphs.create(raw_data_dir, proc_data_dir, batch_length)
+        p.wipe_section()
+        p.put("Creatng gant graphs")
+        p.put(" [ OK ]\n", color = "green")
+
+    if 'dep_graph' in args.data:
+        p.put("Creating dependency graphs\n")
+        p.begin_print_section()
+        dep_graphs.create(raw_data_dir, proc_data_dir)
+        p.wipe_section()
+        p.put("Creatng dependency graphs")
+        p.put(" [ OK ]\n", color = "green")
+
 
 if __name__ == '__main__':
     run_experiment()

@@ -3,6 +3,7 @@
 #include "txns/txn.h"
 #include "schedule/schedule.h"
 #include "schedule/batchschedule.h"
+#include "simulation/schedule_snooper.h"
 #include "simulation/utils.h"
 #include "simulation/sim_args_parser.h"
 
@@ -99,6 +100,7 @@ void run_simulation_for_model(TxnMap& load, Model model) {
   unsigned int batch_length = args.batch_length;
   unsigned int txns_processed = 0;
   Schedule sched;
+  ScheduleSnooper snoop;
 
   if (model == Model::sequential)
     threads = 1;
@@ -132,8 +134,11 @@ void run_simulation_for_model(TxnMap& load, Model model) {
       batch = std::make_unique<std::vector<std::unique_ptr<Txn>>>(
           std::move(load.get_cpy_of_txns_between(current_time - batch_length, current_time - 1)));
       auto bs = BatchSchedule::build_batch_schedule(std::move(batch));
+      if (args.requested_data.find(Data::dep_graph) != args.requested_data.end()) {
+        snoop.update_snooper(bs.get());
+      } 
       sched.merge_batch_schedule_in(std::move(bs));
-    }
+   }
 
     // get all the txns that are ready, start "execution"
     std::shared_ptr<Txn> t;
@@ -169,5 +174,17 @@ void run_simulation_for_model(TxnMap& load, Model model) {
       in_flight_txn_in_time,
       batch_length);
     put(" [ OK ]\n", "green");
+  }
+
+  if (args.requested_data.find(Data::dep_graph) != args.requested_data.end()) {
+    put("Dump dependency graph");
+    snoop.print_dependencies(args.dump_path_root, model_to_string(model));
+    put(" [OK]\n", "green");
+  }
+
+  if (args.requested_data.find(Data::txn_gant) != args.requested_data.end()) {
+    put("Dump gant txn info");
+    write_txn_gant(args.dump_path_root, model_to_string(model), load); 
+    put(" [OK]\n", "green");
   }
 }

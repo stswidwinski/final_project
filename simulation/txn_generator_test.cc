@@ -1,8 +1,6 @@
 #include "simulation/txn_generator.h"
 #include "utils/testing.h"
 
-#include "simulation/utils.h"
-
 // Very simple test that might probabilistically not work very little of the time.
 // Sure, that's a bug, but this isn't going to be powering NASA rockets.
 TEST(RandWithoutRepeatsTest) {

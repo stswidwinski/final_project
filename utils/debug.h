@@ -11,6 +11,7 @@
       std::cout << "Assertion " << #X              \
                 << " failed at " << __FILE__       \
                 << " line " << __LINE__ << "\n";   \
+      exit(-1);                                    \
     }                                              \
   } while (0)                                      
 

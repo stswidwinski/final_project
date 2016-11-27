@@ -18,7 +18,7 @@ def write(path, args):
     file.write(args.en + "\n\n")
     file.write("Generation information\n")
     write_helper(file, "Time Period", [args.tp])
-    write_helper(file, "Transaction Number", [args.tn])
+    write_helper(file, "Transaction Number", args.tn)
     write_helper(file, "Linear Time Multiplier", [args.ltm])
     write_helper(file, "Uncontested lock space size", [args.ulss])
     write_helper(file, "Uncontested lock held avg", args.ulavg)

@@ -58,6 +58,8 @@ public:
   friend void SignalLockGrantedTest();
   friend void SimpleMergingTest();
   friend void BatchScheduleInsert();
+
+  friend class ScheduleSnooper;
 };
 
 #endif // _LOCK_QUEUE_H_

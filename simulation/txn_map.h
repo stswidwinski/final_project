@@ -41,7 +41,8 @@ public:
   void set_start_time(unsigned int txn_id, unsigned int time);
   void reset_start_time();
 
-  friend void write_txn_load(std::string, std::string, TxnMap);
+ ; friend void write_txn_load(std::string, std::string, TxnMap);
+  friend void write_txn_gant(std::string, std::string, const TxnMap&);
 };
 
 #endif // _TXN_MAP_H_

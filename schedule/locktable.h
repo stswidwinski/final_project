@@ -64,6 +64,8 @@ public:
   friend void ScheduleMergingIntoExistingTest();
   friend void BatchScheduleCreationTest1();
   friend void BatchScheduleCreationTest2();
+
+  friend class ScheduleSnooper;
 };
 
 #endif // _LOCK_TABLE_H_

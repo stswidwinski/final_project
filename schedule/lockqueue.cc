@@ -45,10 +45,10 @@ void LockQueue::insert_into_queue(std::shared_ptr<Txn> t, LockType type) {
   };
 
   MutexRWGuard write_lock(&mutex_, LockType::exclusive);
-  if (type == LockType::exclusive) {
-    prep_stage_and_insert();
-    return;
-  }
+//  if (type == LockType::exclusive) {
+//    prep_stage_and_insert();
+//    return;
+//  }
 
   // shared lock request!
   // attempt to add t to newest if that exists

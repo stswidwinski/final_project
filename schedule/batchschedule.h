@@ -35,6 +35,7 @@ public:
   friend void BatchScheduleCreationTest2();
 
   friend class Schedule;  
+  friend class ScheduleSnooper;
 };
 
 #endif // _BATCH_SCHEDULE_H_

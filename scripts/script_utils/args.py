@@ -12,7 +12,7 @@ def init_parser(parser):
             '-ltm', 
             "Linear time multiplier. The length of a transaction is the number of locks it has *ltm")
     add_argument('-tp', "Time period. The time is a linear counter 0 through time period - 1.")
-    add_argument('-tn', "Number of transactions in the simulation")
+    add_argument('-tn', "Number of transactions in the simulation", True)
     add_argument('-ulss', "Uncontested Lock Space Size")
     add_argument('-ulavg', "Average number of unconstedted locks held by txn", True)
     add_argument(
@@ -46,5 +46,5 @@ def init_parser(parser):
             help="Data to gather", 
             nargs="+", 
             required=True, 
-            choices=["load", "avg_proc_time", "std_dev_proc_time", "locks_in_time"]);
+            choices=["load", "avg_proc_time", "std_dev_proc_time", "locks_in_time", "dep_graph", "txn_gant"]);
     

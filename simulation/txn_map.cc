@@ -1,4 +1,5 @@
 #include "simulation/txn_map.h"
+#include "utils/debug.h"
 
 #include <math.h>
 
@@ -12,7 +13,7 @@ double TxnMap::get_average_completion_time() {
     rolling_average *= (double) i / (double) (i + 1);
     rolling_average += current_elt;
 
-    assert(rolling_average > 0);
+    ASSERT(rolling_average >= 0);
   }
 
   return rolling_average;

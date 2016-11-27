@@ -45,6 +45,10 @@ std::set<Data> get_req_data(int argc, char** argv) {
       res.insert(Data::std_dev_proc_time);
     } else if (strcmp(argv[i], "locks_in_time") == 0) {
       res.insert(Data::locks_in_time);
+    } else if (strcmp(argv[i], "dep_graph") == 0) {
+      res.insert(Data::dep_graph);
+    } else if (strcmp(argv[i], "txn_gant") == 0) {
+      res.insert(Data::txn_gant);
     }
   }
 

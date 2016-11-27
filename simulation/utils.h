@@ -1,3 +1,6 @@
+#ifndef _SIMULATION_UTILS_H_
+#define _SIMULATION_UTILS_H_
+
 #include "simulation/txn_sim_wrapper.h"
 #include "simulation/txn_map.h"
 #include "utils/debug.h"
@@ -149,6 +152,7 @@ void write_txns_in_time(
     dump_file.open(path, std::ios::out | std::ios::app);
   } catch (const std::ofstream::failure& e) {
     DEBUG_CERR(std::cerr << e.what() << ". ERR CODE:" << e.code() << std::endl;);
+    return;
   }
   
   if (dump_file.tellp() == 0) {
@@ -161,3 +165,36 @@ void write_txns_in_time(
 
   dump_file.close();
 }
+
+void write_txn_gant(
+    std::string dump_path, 
+    std::string model_name,
+    const TxnMap& tmap) {
+  static std::unordered_map<std::string, int> counters;
+  std::ofstream dump_file;
+
+  auto it = counters.emplace(model_name, 0);
+  std::string path = append_path(
+      dump_path,
+      model_name + "_gant_" + std::to_string(it.first->second ++));
+
+  try {
+    dump_file.open(path, std::ios::out | std::ios::app);
+  } catch (const std::ofstream::failure& e) {
+    DEBUG_CERR(std::cerr << e.what() << ". ERR CODE:" << e.code() << std::endl;);
+    return;
+  }
+
+  dump_file << "txn_id,arrival_time,start_time,duration,excl_locks\n";
+
+  for (auto& twrap : tmap.txns) {
+    dump_file << twrap.t.get_id() << "," << 
+      twrap.arrival_time << "," <<
+      twrap.start_time << "," << 
+      twrap.exec_duration << "," <<
+      twrap.t.get_write_set_handle()->size() << "\n";
+  }
+
+  dump_file.close();
+}
+#endif // _SIMULATION_UTILS_H_

@@ -18,7 +18,9 @@ enum class Data {
   load,
   avg_proc_time,
   std_dev_proc_time,
-  locks_in_time
+  locks_in_time,
+  dep_graph,
+  txn_gant
 };
 
 struct SimulationArgs {

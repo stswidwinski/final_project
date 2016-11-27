@@ -3,6 +3,7 @@
 
 #include "lock/lock.h"
 #include "txns/txn.h"
+#include "utils/debug.h"
 
 #include <memory>
 
@@ -31,7 +32,9 @@ public:
     next_request(ns),
     type(t),
     requesters(reqers)
-   {};
+   {
+    ASSERT(!(t == LockType::exclusive && reqers.size() > 1));
+   };
 
   // Returns true if successful and false otherwise.
   bool add_to_stage(std::shared_ptr<Txn> txn, LockType req_type);
