@@ -24,14 +24,13 @@ def indent():
 
 def begin_print_section():
     print_section.append(0)
-    indent()
 
 def wipe_section():
     global print_section
-    while (print_section[-1] > 0):
+    while (print_section[-1] != 0):
         sys.stdout.write("\033[2K\033[A\033[2K")
         print_section[-1] -= 1;
     
-#    sys.stdout.write("\033[A")
     print_section = print_section[:-1]
+    indent()
     sys.stdout.flush()

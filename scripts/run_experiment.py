@@ -1,6 +1,7 @@
 import argparse
 import subprocess
 import os
+import sys
 import script_utils.dir_utils as dir_utils
 import script_utils.description_file as description_file
 import script_utils.args as args_parsing
@@ -128,17 +129,18 @@ def run_experiment():
         for a in cmd:
             cmd_string += " " + a
        
-        #p.put(cmd_string + "\n");
+       # p.put(cmd_string + "\n");
         p.put("Running " + experiment_type.name + " experiment " + str(i + 1) + " out of " + str(len(iterate_over)))
-        subprocess.call(cmd)
+        if subprocess.call(cmd) < 0:
+            sys.exit(-1)
     p.put("Running experiments")
     p.put(" [ OK ]\n", color='green')
 
     # Create the graphs for all the experiments. Again, this depends on the
     # experiment conducted...
     if 'load' in args.data:
+        p.begin_print_section();
         p.put("Creating load graphs\n")
-        p.begin_print_section()
         load_graphs.create(raw_data_dir, proc_data_dir, 1000)
         p.wipe_section()
         p.put("Creating load graphs")
@@ -146,39 +148,38 @@ def run_experiment():
 
     if experiment_type == Experiment.batch_length:
         if 'avg_proc_time' in args.data or 'std_dev_proc_time' in args.data:
-            p.put("Creating avg proc time graphs")
-            p.begin_print_section()
+            p.begin_print_section();
+            p.put("Creating avg proc time graphs\n")
             batch_length_graphs.create(raw_data_dir, proc_data_dir)    
             p.wipe_section()
             p.put("Creating avg proc time graphs")
             p.put(" [ OK ]\n", color = "green")
         if 'locks_in_time' in args.data:
-            p.put("Creating txns in time graphs")
-            p.begin_print_section()
+            p.begin_print_section();
+            p.put("Creating txns in time graphs\n")
             lock_data_graphs.create(raw_data_dir, proc_data_dir) 
             p.wipe_section()
             p.put("Creating txns in time graphs")
             p.put(" [ OK ]\n", color = "green")
 
     if 'txn_gant' in args.data:
+        p.begin_print_section();
         p.put("Creating gant graphs\n")
-        p.begin_print_section()
         batch_length = 0
         if (experiment_type != Experiment.batch_length):
             batch_length = int(args.bl[0])
         gant_graphs.create(raw_data_dir, proc_data_dir, batch_length)
         p.wipe_section()
-        p.put("Creatng gant graphs")
+        p.put("Creating gant graphs")
         p.put(" [ OK ]\n", color = "green")
 
     if 'dep_graph' in args.data:
+        p.begin_print_section();
         p.put("Creating dependency graphs\n")
-        p.begin_print_section()
         dep_graphs.create(raw_data_dir, proc_data_dir)
         p.wipe_section()
-        p.put("Creatng dependency graphs")
+        p.put("Creating dependency graphs")
         p.put(" [ OK ]\n", color = "green")
-
 
 if __name__ == '__main__':
     run_experiment()

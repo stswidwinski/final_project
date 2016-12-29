@@ -17,7 +17,8 @@ def create_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
         return
-
+   
+    os.makedirs(directory)
     p.put("[ FAIL ]\n", "red")
     raise NameError('Directory ' + directory + 'already exists!')
 

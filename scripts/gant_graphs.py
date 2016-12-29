@@ -5,7 +5,7 @@ import os
 import pandas
 import numpy as np
 from script_utils.dir_utils import *
-import script_utils.print as p
+from script_utils.print import *
 
 def create(path_to_raw_data, path_to_proc_data, batch_length = 0):
     all_data = get_data_paths(path_to_raw_data, "", "gant");
@@ -13,15 +13,15 @@ def create(path_to_raw_data, path_to_proc_data, batch_length = 0):
     for meas_data in all_data:
         if batch_length == 0:
             batch_length = int(meas_data['meas_name'][meas_data['meas_name'].rfind('_') + 1 :]);
-        p.put("Creating gant plot for " + meas_data['meas_name'] + "\n");
+        begin_print_section()
+        put("Creating gant plot for " + meas_data['meas_name'] + "\n");
         save_to = os.path.join(path_to_proc_data, meas_data['meas_name'], "gant_graphs");
         create_dir(save_to);
-        p.begin_print_section()
         for data_file_path in meas_data['meas_data_files_paths']:
-            p.put("Reading data for " + data_file_path)
+            put("Reading data for " + data_file_path)
             data = pandas.read_csv(data_file_path)
-            p.put(" [ OK ]\n", color="green")
-            p.put("Creating graph")
+            put(" [ OK ]\n", color="green")
+            put("Creating graph")
             plt.suptitle("Gantt chart of transactions")
             ax = plt.subplot(111)
             # Prepare the data...
@@ -65,16 +65,16 @@ def create(path_to_raw_data, path_to_proc_data, batch_length = 0):
             # Shrink the graph and place the legen below it.
             box = ax.get_position()
             ax.set_position([box.x0, box.y0 + box.height*0.1, box.width, box.height * 0.9])
-            ax.legend(loc = 'upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol = 2)
+            #ax.legend(loc = 'upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol = 2)
 
             # save it
             path_to_save = os.path.join(
                     save_to,
                     data_file_path[data_file_path.rfind('/') + 1:])
             plt.savefig(path_to_save)
-            p.put(" [ OK ]\n", color="green")
+            put(" [ OK ]\n", color="green")
             plt.cla()
             plt.clf()
-        p.wipe_section()
-        p.put("Creating gant plot for " + meas_data['meas_name'])
-        p.put (" [ OK ]\n", color="green")
+        wipe_section()
+        put("Creating gant plot for " + meas_data['meas_name'])
+        put (" [ OK ]\n", color="green")
