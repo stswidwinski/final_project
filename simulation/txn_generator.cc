@@ -8,6 +8,7 @@ std::vector<int> TxnGenerator::rand_without_repeats(
     unsigned int range_length,
     unsigned int range_begin_with) {
   std::vector<int> pos;
+  assert(how_many > 0);
   assert(range_length >= 0);
   assert(range_length >= how_many);
 
@@ -31,10 +32,12 @@ std::vector<int> TxnGenerator::gen_lock_set(
     std::normal_distribution<double>* lock_distro,
     unsigned int lock_space_size,
     unsigned int lock_space_start) {
+  if (lock_distro->mean() == 0)
+    return std::vector<int>{};
 
   double lock_number;
   // make sure that we aren't unlucky and the number is actually positive
-  while((lock_number = (*lock_distro)(rand_gen)) < 0) {};
+  while((lock_number = (*lock_distro)(rand_gen)) < 1) {};
 
   return rand_without_repeats(
       (unsigned int) lock_number,
