@@ -2,7 +2,6 @@
 
 #include <limits>
 
-// both ranges are inclusive
 std::vector<int> TxnGenerator::rand_without_repeats(
     unsigned int how_many,
     unsigned int range_length,

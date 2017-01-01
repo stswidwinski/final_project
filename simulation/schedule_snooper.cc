@@ -1,4 +1,5 @@
 #include "simulation/schedule_snooper.h"
+#include "simulation/model.h"
 #include "utils/debug.h"
 
 #include <fstream>
@@ -25,7 +26,7 @@ void ScheduleSnooper::update_snooper(BatchSchedule *bs) {
   }
 }
 
-void ScheduleSnooper::print_dependencies(std::string dump_path, std::string model_name) {
+void ScheduleSnooper::print_dependencies(std::string dump_path, Model model) {
   std::unordered_map<txn_id, std::shared_ptr<Txn>> txns;
   std::unordered_map<txn_id, std::set<txn_id>> dependencies;
   std::shared_ptr<LockStage> current;
@@ -55,6 +56,7 @@ void ScheduleSnooper::print_dependencies(std::string dump_path, std::string mode
   }
 
   // dependencies should now be generated.
+  std::string model_name = model_to_string(model);
   auto it = counters.emplace(model_name, 0);
   std::string path = dump_path + '/' + "dep_graph_" + model_name + std::to_string(it.first->second ++); 
   std::ofstream dump_file;

@@ -2,26 +2,10 @@
 #define _SIM_ARGS_PARSER_H_
 
 #include "simulation/txn_generator.h"
+#include "simulation/model.h"
+#include "simulation/data.h"
 
 #include <set>
-
-// the following are the legal models
-enum class Model {
-  sequential,
-  real_time,
-  batched,
-  count
-};
-
-// the following are the legal data dump requests
-enum class Data {
-  load,
-  avg_proc_time,
-  std_dev_proc_time,
-  locks_in_time,
-  dep_graph,
-  txn_gant
-};
 
 struct SimulationArgs {
   TxnGeneratorParams txn_gen_params;

@@ -97,6 +97,7 @@ private:
   // seed_chance + 1 / (distance from closest point) * linear_factor;
   unsigned int linear_factor;
 
+  // both ranges are inclusive
   std::vector<int> rand_without_repeats(
     unsigned int how_many,
     unsigned int range_end_with,
@@ -109,6 +110,7 @@ private:
 
   void check_set_fields();
   TxnWrapper gen_wrapper(unsigned int arrival_time, unsigned int txn_id, bool isWriting);
+
 public:
   TxnGenerator() {
     uniform_probability = std::uniform_real_distribution<double>(0.0, 1.0);
@@ -121,7 +123,7 @@ public:
     set_params(params);
   };
 
-  // the fields set correpsond to those above in order.
+  // the fields set correspond to those above in order.
   void set_lock_time_mult(unsigned int mult);
   void set_time_period(unsigned int tp);
   void set_txn_num(unsigned int tn);

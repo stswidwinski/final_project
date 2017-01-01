@@ -16,7 +16,7 @@ private:
   std::unordered_map<lock_id, std::vector<std::shared_ptr<LockStage>>> lock_stages;
 public:
   void update_snooper(BatchSchedule* bs);
-  void print_dependencies(std::string dump_path, std::string model_name);
+  void print_dependencies(std::string dump_path, Model model);
 };
 
 #endif //_SCHEDULE_SNOOPER_H_

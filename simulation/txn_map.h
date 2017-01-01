@@ -2,6 +2,7 @@
 #define _TXN_MAP_H_
 
 #include "simulation/txn_sim_wrapper.h"
+#include "simulation/model.h"
 
 #include <algorithm>
 #include <cassert>
@@ -30,7 +31,6 @@ public:
     }
   };
 
-
   double get_average_completion_time();
   double get_std_deviation_completion_time();
   // lower_arrival_time and upper_arrival_time are inclusive.
@@ -41,8 +41,8 @@ public:
   void set_start_time(unsigned int txn_id, unsigned int time);
   void reset_start_time();
 
- ; friend void write_txn_load(std::string, std::string, TxnMap);
-  friend void write_txn_gant(std::string, std::string, const TxnMap&);
+  friend void write_txn_load(std::string, std::string, TxnMap);
+  friend void write_txn_gant(std::string, Model, const TxnMap&);
 };
 
 #endif // _TXN_MAP_H_

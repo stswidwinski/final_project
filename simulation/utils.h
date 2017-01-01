@@ -6,6 +6,7 @@
 #include "utils/debug.h"
 #include "simulation/txn_generator.h"
 #include "simulation/sim_args_parser.h"
+#include "simulation/model.h"
 
 #include <vector>
 #include <iostream>
@@ -62,19 +63,6 @@ void put(std::string text, std::string color="white") {
   std::cout << std::flush;
 }
 
-std::string model_to_string(Model model) {
-  switch(model) {
-    case Model::sequential:
-      return "sequential";
-    case Model::real_time:
-      return "real_time";
-    case Model::batched:
-      return "batched";
-    default:
-      return "UNKNOWN";
-  }
-}
-
 std::string append_path(std::string base, std::string path) {
   if (base.back() != '/')
     base += '/';
@@ -82,23 +70,32 @@ std::string append_path(std::string base, std::string path) {
   return base + path;
 }
 
+std::ofstream get_write_file_handle(
+    std::string path, 
+    std::ios_base::openmode mode = std::ios::out | std::ios::app) {
+  std::ofstream dump_file;
+  try {
+    dump_file.open(path, mode);
+  } catch (const std::ofstream::failure& e) {
+    DEBUG_CERR(std::cerr << e.what() << ". ERR CODE:" << e.code() << std::endl;);
+    exit(-1);
+  }
+
+  return dump_file;
+}
+
 void write_txn_load(
     std::string dump_path,
     std::string load_type,
     TxnMap txn_load) {
   static int load_num = 0;
-  std::ofstream dump_file;
   std::string path = append_path(
       dump_path, 
       load_type + "_load_" + std::to_string(load_num));
   load_num ++;
 
   // write the actual result
-  try {
-    dump_file.open(path, std::ios::out | std::ios::trunc);
-  } catch (const std::ofstream::failure& e) {
-    DEBUG_CERR(std::cerr << e.what() << ". ERR CODE:" << e.code() << std::endl;);
-  }
+  std::ofstream dump_file = get_write_file_handle(path);
 
   dump_file << "arrival_time,duration\n";
   for (const TxnWrapper& tw : txn_load.txns) {
@@ -114,13 +111,8 @@ void write_avg_std_dev(
     TxnMap load,
     unsigned int batch_length,
     unsigned int total_time) {
-  std::ofstream dump_file;
   std::string path = append_path(dump_path, model_to_string(model) + "_avg_std");
-  try {
-    dump_file.open(path, std::ios::out | std::ios::app);
-  } catch (const std::ofstream::failure& e) {
-    DEBUG_CERR(std::cerr << e.what() << ". ERR CODE:" << e.code() << std::endl;);
-  }
+  std::ofstream dump_file = get_write_file_handle(path);
   
   if (dump_file.tellp() == 0) {
     // write the header
@@ -140,20 +132,14 @@ void write_txns_in_time(
     Model model, 
     std::vector<unsigned int> locks_in_time,
     unsigned int batch_length) {
-  static unsigned int counters[(int) Model::count] = {0};
-  std::ofstream dump_file;
+  static unsigned int counters[(int) Model::model_types_count] = {0};
   
   std::string path = append_path(
       dump_path, 
       model_to_string(model) + "_txns_in_time_" + std::to_string(counters[(int) model]));
   counters[(int) model] ++;
 
-  try {
-    dump_file.open(path, std::ios::out | std::ios::app);
-  } catch (const std::ofstream::failure& e) {
-    DEBUG_CERR(std::cerr << e.what() << ". ERR CODE:" << e.code() << std::endl;);
-    return;
-  }
+  std::ofstream dump_file = get_write_file_handle(path);
   
   if (dump_file.tellp() == 0) {
     // write the header
@@ -168,22 +154,15 @@ void write_txns_in_time(
 
 void write_txn_gant(
     std::string dump_path, 
-    std::string model_name,
+    Model model,
     const TxnMap& tmap) {
   static std::unordered_map<std::string, int> counters;
-  std::ofstream dump_file;
 
-  auto it = counters.emplace(model_name, 0);
+  auto it = counters.emplace(model_to_string(model), 0);
   std::string path = append_path(
       dump_path,
-      model_name + "_gant_" + std::to_string(it.first->second ++));
-
-  try {
-    dump_file.open(path, std::ios::out | std::ios::app);
-  } catch (const std::ofstream::failure& e) {
-    DEBUG_CERR(std::cerr << e.what() << ". ERR CODE:" << e.code() << std::endl;);
-    return;
-  }
+      model_to_string(model) + "_gant_" + std::to_string(it.first->second ++));
+  std::ofstream dump_file = get_write_file_handle(path);
 
   dump_file << "txn_id,arrival_time,start_time,duration,excl_locks\n";
 
@@ -197,4 +176,5 @@ void write_txn_gant(
 
   dump_file.close();
 }
+
 #endif // _SIMULATION_UTILS_H_

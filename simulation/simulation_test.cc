@@ -6,6 +6,8 @@
 #include "simulation/schedule_snooper.h"
 #include "simulation/utils.h"
 #include "simulation/sim_args_parser.h"
+#include "simulation/model.h"
+#include "simulation/workload.h"
 
 #include <algorithm>
 #include <memory>
@@ -13,18 +15,6 @@
 #include <unordered_map>
 
 SimulationArgs args;
-enum class Workload { uniform, bursty };
-
-std::string workload_to_string(Workload load) {
-  switch(load) {
-    case Workload::uniform:
-      return "uniform";
-    case Workload::bursty:
-      return "bursty";
-    default:
-      return "error";
-  }
-}
 
 void run_simulation_for_model(TxnMap& load, Model model);
 
@@ -178,13 +168,13 @@ void run_simulation_for_model(TxnMap& load, Model model) {
 
   if (args.requested_data.find(Data::dep_graph) != args.requested_data.end()) {
     put("Dump dependency graph");
-    snoop.print_dependencies(args.dump_path_root, model_to_string(model));
+    snoop.print_dependencies(args.dump_path_root, model);
     put(" [OK]\n", "green");
   }
 
   if (args.requested_data.find(Data::txn_gant) != args.requested_data.end()) {
     put("Dump gant txn info");
-    write_txn_gant(args.dump_path_root, model_to_string(model), load); 
+    write_txn_gant(args.dump_path_root, model, load); 
     put(" [OK]\n", "green");
   }
 }
