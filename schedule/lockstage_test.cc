@@ -1,6 +1,7 @@
 #include "schedule/lockstage.h"
 #include "utils/testing.h"
 #include "txns/txn.h"
+#include "schedule/lockstage_test_utils.h"
 
 std::shared_ptr<Txn> test_txn = std::make_shared<Txn>(
   0,

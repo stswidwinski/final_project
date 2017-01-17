@@ -2,31 +2,6 @@
 #include "schedule/lockqueue.h"
 #include "lock/lock.h"
 
-bool LockQueue::operator==(const LockQueue& lq) const {
-  std::shared_ptr<LockStage> us = current;
-  std::shared_ptr<LockStage> them = lq.current;
-  while (us != nullptr || them != nullptr) {
-    // the lengths of the two queues are not equivalent
-    if ((us == nullptr && them != nullptr) ||
-        (us != nullptr && them == nullptr)) {
-      return false;
-    }
-
-    // the two elements must be equivalent
-    if ((*us) != (*them))
-      return false;
-
-    us = us->get_next_request();
-    them = them->get_next_request();
-  }
-
-  return true;
-}
-
-bool LockQueue::operator!=(const LockQueue& lq) const {
-  return !(LockQueue::operator==(lq));
-}
-
 void LockQueue::insert_into_queue(std::shared_ptr<Txn> t, LockType type) {
   auto prep_stage_and_insert = [&t, &type, this]() {
     std::shared_ptr<LockStage> stage = 
@@ -142,4 +117,12 @@ std::unordered_set<std::shared_ptr<Txn>> LockQueue::signal_lock_granted() {
   }
 
   return ready_txns;
+}
+
+std::shared_ptr<LockStage> LockQueue::getCurrent() const {
+  return current;
+}
+
+std::shared_ptr<LockStage> LockQueue::getNewest() const {
+  return newest;
 }

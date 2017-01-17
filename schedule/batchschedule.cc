@@ -2,10 +2,6 @@
 #include "schedule/batchschedule.h"
 #include "packing/packing.h"
 
-bool BatchSchedule::operator==(const BatchSchedule& bs) const {
-  return bs.lock_table == lock_table;
-};
-
 void BatchSchedule::add_txn(std::shared_ptr<Txn> t) {
   auto wh = t->get_write_set_handle();
   auto rh = t->get_read_set_handle();

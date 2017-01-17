@@ -1,4 +1,5 @@
 #include "schedule/locktable.h"
+#include "schedule/locktable_test_utils.h"
 #include "utils/testing.h"
 #include "txns/txn.h"
 #include "lock/lock.h"

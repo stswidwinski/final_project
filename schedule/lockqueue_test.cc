@@ -2,6 +2,7 @@
 #include "txns/txn.h"
 #include "lock/lock.h"
 #include "utils/testing.h"
+#include "schedule/lockqueue_test_utils.h"
 
 #include <memory>
 #include <set>

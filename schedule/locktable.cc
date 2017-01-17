@@ -1,33 +1,6 @@
 #include "schedule/locktable.h"
 #include "utils/debug.h"
 
-void LockTable::ReadyTxnQueue::add_txn(std::shared_ptr<Txn> t) {
-  std::unique_lock<std::mutex> lck(mutex_);
-  ready_queue.push_back(t);
-  cv_.notify_all();
-}
-
-std::shared_ptr<Txn> LockTable::ReadyTxnQueue::get_ready_txn() {
-  std::unique_lock<std::mutex> lck(mutex_);
-  while (ready_queue.size() == 0) {
-    cv_.wait(lck);
-  }
-
-  std::shared_ptr<Txn> t = ready_queue.front();
-  ready_queue.pop_front();
-  return t;
-}
-
-std::shared_ptr<Txn> LockTable::ReadyTxnQueue::try_get_ready_txn() {
-  std::unique_lock<std::mutex> lck(mutex_);
-  if (ready_queue.size() == 0)
-    return nullptr;
-
-  std::shared_ptr<Txn> t = ready_queue.front();
-  ready_queue.pop_front();
-  return t;
-}
-
 // NOTE:
 //  We can release the lock after we have obtained the 
 //  queue because the lock table changes ONLY when 
@@ -49,40 +22,6 @@ std::shared_ptr<LockQueue> LockTable::get_lock_queue(int lck) {
   //  inserts the element if it does not exist at the time
   //  of execution.
   return lock_table.emplace(lck, std::make_shared<LockQueue>()).first->second;
-}
-
-bool LockTable::operator==(const LockTable& lt) const {
-  // we must have the same number of elt in the lock tables.
-  if (lock_table.size() != lt.lock_table.size())
-    return false;
-
-  // the ready queues must have the same size.
-  if (ready_queue.ready_queue.size() != lt.ready_queue.ready_queue.size())
-    return false;
-
-  // every element in lock_table must be present in lts lock table 
-  // and map to the same elt.
-  for (auto entry : lock_table) {
-    if (lt.lock_table.find(entry.first) == lt.lock_table.end())
-      return false;
-
-    if ((*entry.second) != (*lt.lock_table.find(entry.first)->second))
-      return false;
-  }
-
-  // every elt in ready queue must be equivalent.
-  auto usIt = ready_queue.ready_queue.begin();
-  auto theyIt = lt.ready_queue.ready_queue.begin();
-  for (; usIt != ready_queue.ready_queue.end(); usIt++, theyIt++) {
-    if (*usIt != *theyIt)
-      return false;
-  }
-
-  return true;
-}
-
-bool LockTable::operator!=(const LockTable& lt) const {
-  return !(LockTable::operator==(lt));
 }
 
 void LockTable::insert_lock_request(std::shared_ptr<Txn> t, int lck, LockType type) {

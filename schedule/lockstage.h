@@ -43,19 +43,12 @@ public:
   void set_next_stage(std::shared_ptr<LockStage> ls);
 
   // getters
-  int get_current_holders();
+  int get_current_holders() const;
   std::shared_ptr<LockStage> get_next_request();
-  std::unordered_set<std::shared_ptr<Txn>>& get_requesters();
-  LockType get_lock_type();
+  const std::unordered_set<std::shared_ptr<Txn>>& get_requesters() const;
+  LockType get_lock_type() const;
 
-  // Two LockStages are equal if they holders, type and requesters
-  // are the same. The next_request may be different,
-  //
-  // NOTE:
-  //    USE IN TESTS ONLY.
-  bool operator==(const LockStage& ls) const;
-  bool operator!=(const LockStage& ls) const;
-
+  friend bool operator==(const LockStage& ls1, const LockStage& ls2);
   friend void BatchScheduleInsert();
 };
 

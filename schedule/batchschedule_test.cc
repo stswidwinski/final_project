@@ -2,6 +2,7 @@
 #include "schedule/batchschedule.h"
 #include "utils/testing.h"
 #include "schedule/locktable.h"
+#include "schedule/batchschedule_test_utils.h"
 
 typedef std::shared_ptr<Txn> txn_pt;
 

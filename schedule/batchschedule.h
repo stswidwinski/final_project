@@ -25,7 +25,9 @@ public:
   static std::unique_ptr<BatchSchedule> build_batch_schedule(
       std::unique_ptr<std::vector<std::unique_ptr<Txn>>> batch);
 
-  bool operator==(const BatchSchedule& bs) const;
+  friend bool operator==(
+      const BatchSchedule& bs1, 
+      const BatchSchedule& bs2);
 
   // tests that need access
   friend void BatchScheduleInsert();
