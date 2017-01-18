@@ -1,4 +1,4 @@
-#include "schedule/schedule.h"
+#include "schedule/schedule/schedule.h"
 
 void Schedule::merge_batch_schedule_in(std::unique_ptr<BatchSchedule> bs) {
   lock_table.merge_into_lock_table(bs->lock_table);

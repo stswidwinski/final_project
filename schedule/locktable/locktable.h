@@ -1,8 +1,8 @@
 #ifndef _LOCK_TABLE_H_
 #define _LOCK_TABLE_H_
 
-#include "schedule/lockqueue.h"
-#include "schedule/readytxnqueue.h"
+#include "schedule/lockqueue/lockqueue.h"
+#include "schedule/locktable/readytxnqueue.h"
 #include "txns/txn.h"
 #include "lock/lock.h"
 

@@ -1,7 +1,7 @@
 #ifndef _LOCKQUEUE_TEST_UTILS_H_
 #define _LOCKQUEUE_TEST_UTILS_H_
 
-#include "schedule/lockstage_test_utils.h"
+#include "schedule/lockstage/lockstage_test_utils.h"
 #include <memory>
 
 // NOTE: These functions are not a part of LockQueue class 

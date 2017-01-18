@@ -1,8 +1,8 @@
 #ifndef _SCHEDULE_H_
 #define _SCHEDULE_H_
 
-#include "schedule/locktable.h"
-#include "schedule/batchschedule.h"
+#include "schedule/locktable/locktable.h"
+#include "schedule/batchschedule/batchschedule.h"
 
 #include <memory>
 

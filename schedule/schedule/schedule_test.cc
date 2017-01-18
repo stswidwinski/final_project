@@ -1,7 +1,7 @@
-#include "schedule/schedule.h"
+#include "schedule/schedule/schedule.h"
 #include "utils/testing.h"
-#include "schedule/testbatchschedule.h"
-#include "schedule/testschedule.h"
+#include "schedule/batchschedule/testbatchschedule.h"
+#include "schedule/schedule/testschedule.h"
 
 TEST(ScheduleMergingIntoEmptyTest) {
   std::unique_ptr<TestBatchSchedule> bs = std::make_unique<TestBatchSchedule>();

@@ -1,7 +1,7 @@
 #ifndef _BATCH_SCHEDULE_H_
 #define _BATCH_SCHEDULE_H_
 
-#include "schedule/locktable.h"
+#include "schedule/locktable/locktable.h"
 #include "txns/txn.h"
 #include "containers/container.cc"
 #include "utils/debug.h"

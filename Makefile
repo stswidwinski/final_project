@@ -60,7 +60,11 @@ MAKEFILE_TEMPLATE := Makefile.template
 include txns/Makefile.inc
 include containers/Makefile.inc
 include packing/Makefile.inc
-include schedule/Makefile.inc
+include schedule/lockstage/Makefile.inc
+include schedule/lockqueue/Makefile.inc
+include schedule/locktable/Makefile.inc
+include schedule/batchschedule/Makefile.inc
+include schedule/schedule/Makefile.inc
 include simulation/Makefile.inc
 
 test: $(TESTS)

@@ -1,5 +1,5 @@
 #include "containers/array_cont.h"
-#include "schedule/batchschedule.h"
+#include "schedule/batchschedule/batchschedule.h"
 #include "packing/packing.h"
 
 void BatchSchedule::add_txn(std::shared_ptr<Txn> t) {

@@ -1,9 +1,9 @@
 #include "lock/lock.h"
-#include "schedule/batchschedule.h"
 #include "utils/testing.h"
-#include "schedule/locktable.h"
-#include "schedule/batchschedule_test_utils.h"
-#include "schedule/testbatchschedule.h"
+#include "schedule/locktable/locktable.h"
+#include "schedule/batchschedule/batchschedule.h"
+#include "schedule/batchschedule/batchschedule_test_utils.h"
+#include "schedule/batchschedule/testbatchschedule.h"
 
 typedef std::shared_ptr<Txn> txn_pt;
 

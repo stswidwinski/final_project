@@ -1,7 +1,7 @@
 #ifndef _LOCKTABLE_TEST_UTILS_H_
 #define _LOCKTABLE_TEST_UTILS_H_
 
-#include "schedule/lockqueue_test_utils.h"
+#include "schedule/lockqueue/lockqueue_test_utils.h"
 
 // Two LockTables are equal if 
 //    1) they contain the same elements

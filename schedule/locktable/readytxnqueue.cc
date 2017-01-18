@@ -1,4 +1,4 @@
-#include "schedule/readytxnqueue.h"
+#include "schedule/locktable/readytxnqueue.h"
 
 void ReadyTxnQueue::add_txn(std::shared_ptr<Txn> t) {
   std::unique_lock<std::mutex> lck(mutex_);

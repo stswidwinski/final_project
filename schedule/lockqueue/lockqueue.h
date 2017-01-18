@@ -1,7 +1,7 @@
 #ifndef _LOCK_QUEUE_H_
 #define _LOCK_QUEUE_H_
 
-#include "schedule/lockstage.h"
+#include "schedule/lockstage/lockstage.h"
 #include "utils/mutex.h"
 #include "lock/lock.h"
 

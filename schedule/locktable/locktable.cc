@@ -1,4 +1,4 @@
-#include "schedule/locktable.h"
+#include "schedule/locktable/locktable.h"
 #include "utils/debug.h"
 
 // NOTE:

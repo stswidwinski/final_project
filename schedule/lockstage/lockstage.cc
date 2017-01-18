@@ -1,4 +1,4 @@
-#include "schedule/lockstage.h"
+#include "schedule/lockstage/lockstage.h"
 
 bool LockStage::add_to_stage(std::shared_ptr<Txn> txn, LockType req_type) {
   if ((req_type == LockType::exclusive && requesters.size() != 0) ||

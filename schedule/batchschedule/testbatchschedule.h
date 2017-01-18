@@ -1,8 +1,8 @@
 #ifndef _TEST_BATCH_SCHEDULE_H_
 #define _TEST_BATCH_SCHEDULE_H_
 
-#include "schedule/testlocktable.h"
-#include "schedule/batchschedule.h"
+#include "schedule/locktable/testlocktable.h"
+#include "schedule/batchschedule/batchschedule.h"
 
 class TestBatchSchedule : public BatchSchedule {
 public:

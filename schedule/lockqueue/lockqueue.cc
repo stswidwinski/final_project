@@ -1,5 +1,5 @@
 #include "utils/debug.h"
-#include "schedule/lockqueue.h"
+#include "schedule/lockqueue/lockqueue.h"
 #include "lock/lock.h"
 
 void LockQueue::insert_into_queue(std::shared_ptr<Txn> t, LockType type) {

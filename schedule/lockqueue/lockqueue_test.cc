@@ -1,7 +1,7 @@
 #include "lock/lock.h"
-#include "schedule/lockqueue.h"
-#include "schedule/lockqueue_test_utils.h"
-#include "schedule/testlockqueue.h"
+#include "schedule/lockqueue/lockqueue.h"
+#include "schedule/lockqueue/lockqueue_test_utils.h"
+#include "schedule/lockqueue/testlockqueue.h"
 #include "txns/txn.h"
 #include "utils/testing.h"
 

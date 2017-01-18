@@ -1,8 +1,8 @@
 #ifndef _SCHEDULE_SNOOPER_H_
 #define _SCHEDULE_SNOOPER_H_
 
-#include "schedule/schedule.h"
-#include "schedule/lockstage.h"
+#include "schedule/schedule/schedule.h"
+#include "schedule/lockstage/lockstage.h"
 #include "simulation/sim_args_parser.h"
 
 #include <unordered_map>
