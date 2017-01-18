@@ -14,7 +14,7 @@
 #include <memory>
 
 class LockTable {
-private:
+protected:
   // returns the pointer to the lock queue corresponding to
   // lck. Inserts the lock queue to the lock table if needed.
   std::shared_ptr<LockQueue> get_lock_queue(int lck);
@@ -36,9 +36,6 @@ public:
   friend bool operator==(const LockTable& lt1, const LockTable& lt2);
   friend bool operator!=(const LockTable& lt1, const LockTable& lt2);
 
-  friend void InsertLockRequestTest();
-  friend void FinalizeLockRequestTest(); 
-  friend void MergeTest();
   friend void BatchScheduleInsert();
   friend void ScheduleMergingIntoEmptyTest();
   friend void ScheduleMergingIntoExistingTest();

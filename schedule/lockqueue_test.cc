@@ -1,8 +1,9 @@
-#include "schedule/lockqueue.h"
-#include "txns/txn.h"
 #include "lock/lock.h"
-#include "utils/testing.h"
+#include "schedule/lockqueue.h"
 #include "schedule/lockqueue_test_utils.h"
+#include "schedule/testlockqueue.h"
+#include "txns/txn.h"
+#include "utils/testing.h"
 
 #include <memory>
 #include <set>
@@ -18,7 +19,7 @@ std::shared_ptr<Txn> test_txn2 = std::make_shared<Txn>(
   std::shared_ptr<std::set<int>>(new std::set<int>({2})));
 
 TEST(ExclusiveTxnQueueingTest) {
-  LockQueue lq;
+  TestLockQueue lq;
   EXPECT_TRUE(lq.current == nullptr);
   EXPECT_TRUE(lq.newest == nullptr);
   
@@ -37,7 +38,7 @@ TEST(ExclusiveTxnQueueingTest) {
 }
 
 TEST(SharedTxnQueueingTest) {
-  LockQueue lq;
+  TestLockQueue lq;
   EXPECT_TRUE(lq.current == nullptr);
   EXPECT_TRUE(lq.newest == nullptr);
 
@@ -55,8 +56,8 @@ TEST(SharedTxnQueueingTest) {
 }
 
 TEST(SharedAndExclusiveQueueingTest) {
-  LockQueue lq1;
-  LockQueue lq2;
+  TestLockQueue lq1;
+  TestLockQueue lq2;
   EXPECT_TRUE(lq1.current == nullptr);
   EXPECT_TRUE(lq1.newest == nullptr);
   EXPECT_TRUE(lq2.current == nullptr);
@@ -95,7 +96,7 @@ TEST(SharedAndExclusiveQueueingTest) {
 // Finalization of txns returns transactions with a single lock request
 // and move on the queue.
 TEST(FinalizeTxnTest) {
-  LockQueue lq;
+  TestLockQueue lq;
 
   std::shared_ptr<Txn> finalize_txn_1 = std::make_shared<Txn>(
     0,
@@ -164,7 +165,7 @@ TEST(FinalizeTxnTest) {
 // is not enough and the txn will not be returned, but the lock queue
 // will go on.
 TEST(FinalizeTxnMultiLockTest) {
-  LockQueue lq; 
+  TestLockQueue lq; 
   std::shared_ptr<Txn> finalize_txn_1 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1})),
@@ -181,7 +182,7 @@ TEST(FinalizeTxnMultiLockTest) {
 
 // Signaling returns what is correct and does not iterate.
 TEST(SignalLockGrantedTest) {
-  LockQueue lq; 
+  TestLockQueue lq; 
   std::shared_ptr<Txn> finalize_txn_1 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1})),
@@ -202,8 +203,8 @@ TEST(SignalLockGrantedTest) {
 }
 
 TEST(SimpleMergingTest) {
-  LockQueue lq1;
-  LockQueue lq2;
+  TestLockQueue lq1;
+  TestLockQueue lq2;
 
   lq1.insert_into_queue(test_txn, LockType::exclusive);
   lq2.insert_into_queue(test_txn2, LockType::shared);
@@ -216,8 +217,8 @@ TEST(SimpleMergingTest) {
   EXPECT_EQ(1, lq2.newest->get_requesters().size());
 
   // merge with coalescing.
-  LockQueue lq3;
-  LockQueue lq4;
+  TestLockQueue lq3;
+  TestLockQueue lq4;
 
   lq3.insert_into_queue(test_txn, LockType::shared);
   lq4.insert_into_queue(test_txn2, LockType::shared);
@@ -229,8 +230,8 @@ TEST(SimpleMergingTest) {
   EXPECT_TRUE(nullptr != lq3.current);
 
   // coalescing should not happen if shared lock is not the newest!
-  LockQueue lq5;
-  LockQueue lq6;
+  TestLockQueue lq5;
+  TestLockQueue lq6;
 
   lq5.insert_into_queue(test_txn, LockType::shared);
   lq5.insert_into_queue(test_txn, LockType::exclusive);
@@ -241,8 +242,8 @@ TEST(SimpleMergingTest) {
   EXPECT_TRUE(lq5.current->get_next_request()->get_next_request() == lq5.newest);
 
   // a merge with an empty lock queue does not cause problems
-  LockQueue lq7;
-  LockQueue lq8;
+  TestLockQueue lq7;
+  TestLockQueue lq8;
   
   lq7.insert_into_queue(test_txn, LockType::exclusive);
   EXPECT_FALSE(lq7.merge_into_lock_queue(
@@ -254,8 +255,8 @@ TEST(SimpleMergingTest) {
 }
 
 TEST(EqualityTest) {
-  LockQueue lq1;
-  LockQueue lq2;
+  TestLockQueue lq1;
+  TestLockQueue lq2;
 
   EXPECT_TRUE(lq1 == lq2);
 

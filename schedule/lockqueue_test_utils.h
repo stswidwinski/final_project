@@ -12,8 +12,8 @@
 // are equivalent in the sense defined within lockstage_test_utils.h
 bool operator==(const LockQueue& lq1, const LockQueue& lq2) {
   std::shared_ptr<LockStage> us, them;
-  us = lq1.getCurrent();
-  them = lq2.getCurrent();
+  us = lq1.current;
+  them = lq2.current;
 
   // any one of the two is nullptr
   while (us != nullptr || them != nullptr) {

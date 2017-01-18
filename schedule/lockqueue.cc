@@ -118,11 +118,3 @@ std::unordered_set<std::shared_ptr<Txn>> LockQueue::signal_lock_granted() {
 
   return ready_txns;
 }
-
-std::shared_ptr<LockStage> LockQueue::getCurrent() const {
-  return current;
-}
-
-std::shared_ptr<LockStage> LockQueue::getNewest() const {
-  return newest;
-}

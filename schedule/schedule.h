@@ -7,7 +7,7 @@
 #include <memory>
 
 class Schedule {
-private:
+protected:
   LockTable lock_table;
 public:
   void merge_batch_schedule_in(std::unique_ptr<BatchSchedule> bs);
@@ -15,9 +15,6 @@ public:
   std::shared_ptr<Txn> get_txn_to_execute();
   std::shared_ptr<Txn> try_get_txn_to_execute();
   void finalize_txn(std::shared_ptr<Txn> t);
-
-  friend void ScheduleMergingIntoEmptyTest();
-  friend void ScheduleMergingIntoExistingTest();
 };
 
 #endif // _SCHEDULE_H_

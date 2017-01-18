@@ -3,11 +3,12 @@
 #include "utils/testing.h"
 #include "schedule/locktable.h"
 #include "schedule/batchschedule_test_utils.h"
+#include "schedule/testbatchschedule.h"
 
 typedef std::shared_ptr<Txn> txn_pt;
 
 TEST(BatchScheduleInsert) {
-  BatchSchedule bs;
+  TestBatchSchedule bs;
 
   txn_pt test_txn_1 = std::make_shared<Txn>(
     0,
@@ -86,7 +87,8 @@ TEST(BatchScheduleCreationTest1) {
 
   // create a schedule and make sure that it has been put together
   // correctly.
-  std::unique_ptr<BatchSchedule> bs = BatchSchedule::build_batch_schedule(std::move(txns));
+  std::unique_ptr<TestBatchSchedule> bs = 
+    TestBatchSchedule::build_batch_schedule(std::move(txns));
   LockTable& lt = bs->lock_table;
 
   // The lock table for lock #1
@@ -178,7 +180,7 @@ TEST(BatchScheduleCreationTest2) {
 
   // create a schedule and make sure that it has been put together
   // correctly.
-  std::unique_ptr<BatchSchedule> bs = BatchSchedule::build_batch_schedule(std::move(txns));
+  std::unique_ptr<TestBatchSchedule> bs = TestBatchSchedule::build_batch_schedule(std::move(txns));
   LockTable& lt = bs->lock_table;
   // The lock table for lock #1
   LockStage expected_newest_1 = LockStage(

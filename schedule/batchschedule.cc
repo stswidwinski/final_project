@@ -15,9 +15,8 @@ void BatchSchedule::add_txn(std::shared_ptr<Txn> t) {
   }
 }
 
-std::unique_ptr<BatchSchedule> BatchSchedule::build_batch_schedule(
+BatchSchedule::BatchSchedule(
     std::unique_ptr<std::vector<std::unique_ptr<Txn>>> b) {
-  std::unique_ptr<BatchSchedule> bs = std::make_unique<BatchSchedule>();
   ArrayContainer c(std::move(b));
   while(c.get_remaining_count() != 0) {
     c.sort_remaining();
@@ -27,11 +26,14 @@ std::unique_ptr<BatchSchedule> BatchSchedule::build_batch_schedule(
       // lock table requests.
       std::shared_ptr<Txn> t{std::move(packing[i])};
 #ifdef DEBUG
-      bs->txns.insert({t->get_id(), t});
+      txns.insert({t->get_id(), t});
 #endif
-      bs->add_txn(t);
+      add_txn(t);
     }
   }
+}
 
-  return bs; 
+std::unique_ptr<BatchSchedule> BatchSchedule::build_batch_schedule(
+    std::unique_ptr<std::vector<std::unique_ptr<Txn>>> b) {
+  return std::make_unique<BatchSchedule>(std::move(b));
 }

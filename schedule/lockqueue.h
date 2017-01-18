@@ -9,7 +9,7 @@
 #include <unordered_set>
 
 class LockQueue {
-private:
+protected:
   std::shared_ptr<LockStage> current;
   std::shared_ptr<LockStage> newest;
   MutexRW mutex_;
@@ -41,20 +41,10 @@ public:
   // all of its locks.
   std::unordered_set<std::shared_ptr<Txn>> signal_lock_granted(); 
 
-  // getters
-  std::shared_ptr<LockStage> getCurrent() const;
-  std::shared_ptr<LockStage> getNewest() const;
+  friend bool operator==(const LockQueue& lq1, const LockQueue& lq2);
 
-  // A bunch of friend test functions.
-  friend void ExclusiveTxnQueueingTest(); 
-  friend void SharedTxnQueueingTest();
-  friend void SharedAndExclusiveQueueingTest();
-  friend void FinalizeTxnTest();
-  friend void FinalizeTxnMultiLockTest();
-  friend void SignalLockGrantedTest();
-  friend void SimpleMergingTest();
   friend void BatchScheduleInsert();
-
+  
   friend class ScheduleSnooper;
 };
 

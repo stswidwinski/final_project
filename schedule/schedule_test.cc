@@ -1,8 +1,10 @@
 #include "schedule/schedule.h"
 #include "utils/testing.h"
+#include "schedule/testbatchschedule.h"
+#include "schedule/testschedule.h"
 
 TEST(ScheduleMergingIntoEmptyTest) {
-  std::unique_ptr<BatchSchedule> bs = std::make_unique<BatchSchedule>();
+  std::unique_ptr<TestBatchSchedule> bs = std::make_unique<TestBatchSchedule>();
   std::shared_ptr<Txn> test_txn_1 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1, 3})),
@@ -16,7 +18,7 @@ TEST(ScheduleMergingIntoEmptyTest) {
   bs->add_txn(test_txn_1);
   bs->add_txn(test_txn_2);
  
-  Schedule s;
+  TestSchedule s;
   s.merge_batch_schedule_in(std::move(bs));
   
   EXPECT_EQ(
@@ -41,7 +43,8 @@ TEST(ScheduleMergingIntoEmptyTest) {
 }
 
 TEST(ScheduleMergingIntoExistingTest) {
-  std::unique_ptr<BatchSchedule> bs = std::make_unique<BatchSchedule>();
+  std::unique_ptr<TestBatchSchedule> bs = 
+    std::make_unique<TestBatchSchedule>();
   std::shared_ptr<Txn> test_txn_1 = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1, 3})),
@@ -54,12 +57,12 @@ TEST(ScheduleMergingIntoExistingTest) {
   bs->add_txn(test_txn_1);
   bs->add_txn(test_txn_2);
   
-  Schedule s;
+  TestSchedule s;
   s.merge_batch_schedule_in(std::move(bs));
 
   // Create a second batch schedule with conflicting 
   // and non-conflicting elements.
-  std::unique_ptr<BatchSchedule> bs1 = std::make_unique<BatchSchedule>();
+  std::unique_ptr<TestBatchSchedule> bs1 = std::make_unique<TestBatchSchedule>();
   // should be ready inmediately.
   std::shared_ptr<Txn> test_txn_3 = std::make_shared<Txn>(
     0,

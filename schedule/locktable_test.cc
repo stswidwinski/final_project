@@ -1,5 +1,6 @@
 #include "schedule/locktable.h"
 #include "schedule/locktable_test_utils.h"
+#include "schedule/testlocktable.h"
 #include "utils/testing.h"
 #include "txns/txn.h"
 #include "lock/lock.h"
@@ -20,7 +21,7 @@ std::shared_ptr<Txn> test_txn_2 = std::make_shared<Txn>(
 //    entryies in lock table are created. The insertion is implicitly
 //    tested when finalization is checked.
 TEST(InsertLockRequestTest){
-  LockTable lt;
+  TestLockTable lt;
 
   lt.insert_lock_request(test_txn, 1, LockType::exclusive);
   EXPECT_TRUE(lt.lock_table.find(1) != lt.lock_table.end());
@@ -34,7 +35,7 @@ TEST(InsertLockRequestTest){
 }
 
 TEST(FinalizeLockRequestTest){
-  LockTable lt;
+  TestLockTable lt;
   std::shared_ptr<Txn> fake_txn = std::make_shared<Txn>(
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1})),
@@ -73,8 +74,8 @@ TEST(FinalizeLockRequestTest){
 }
 
 TEST(MergeTest) {
-  LockTable lt1;
-  LockTable lt2;
+  TestLockTable lt1;
+  TestLockTable lt2;
   std::shared_ptr<Txn> txn = std::make_shared<Txn>( 
     0,
     std::shared_ptr<std::set<int>>(new std::set<int>({1})),
@@ -106,8 +107,8 @@ TEST(MergeTest) {
 }
 
 TEST(EqualityTest) {
-  LockTable lt1;
-  LockTable lt2;
+  TestLockTable lt1;
+  TestLockTable lt2;
 
   // basic insertion of a single exclusive lock.
   EXPECT_TRUE(lt1 == lt2);
@@ -131,8 +132,8 @@ TEST(EqualityTest) {
   lt2.insert_lock_request(test_txn, 1, LockType::exclusive);
   EXPECT_TRUE(lt1 == lt2);
 
-  LockTable lt3;
-  LockTable lt4;
+  TestLockTable lt3;
+  TestLockTable lt4;
 
   // basic insertion of a single shared lock.
   lt3.insert_lock_request(test_txn, 1, LockType::shared);

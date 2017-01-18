@@ -49,7 +49,6 @@ public:
   LockType get_lock_type() const;
 
   friend bool operator==(const LockStage& ls1, const LockStage& ls2);
-  friend void BatchScheduleInsert();
 };
 
 #endif // _LOCK_STAGE_H_
